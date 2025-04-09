@@ -11,6 +11,16 @@ public partial class MainPage : ContentPage
 		InitializeComponent();
 	}
 
+	private async void AsiakasVaraus(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new AsiakasVarausPage());
+    }
+
+	private async void Hallinta(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new HallintaPage());
+    }
+
 	private async void OnDatabaseClicked(object sender, EventArgs e)
 	{
 		DatabaseConnector dbc = new DatabaseConnector();

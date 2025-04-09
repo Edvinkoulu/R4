@@ -24,6 +24,12 @@
                 SemanticProperties.HeadingLevel="Level2"
                 SemanticProperties.Description="Welcome to dot net Multi platform App U I"/>
 
+            <Button Text="Go to asiakas varaus"
+                Clicked="AsiakasVaraus" />
+            
+            <Button Text="Go to hallinta"
+                Clicked="Hallinta" />
+
             <!-- UUDEN NAPIN KOODI -->
             <Button
                 x:Name="DatabaseBtn"
