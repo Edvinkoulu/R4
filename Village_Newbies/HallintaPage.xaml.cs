@@ -6,4 +6,12 @@ public partial class HallintaPage : ContentPage
     {
         InitializeComponent();
     }
+
+            // Avaa palveluiden lisäys sivun
+        private async void OnLisaysButtonClicked(object sender, EventArgs e)
+        {
+            // Siirrytään palvelu sivulle
+            await Navigation.PushAsync(new PalvelunLisaysPage());
+        }
+
 }

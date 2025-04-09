@@ -9,6 +9,14 @@
         <Label Text="Welcome to the Hallinta page!"
                FontSize="24"
                HorizontalOptions="Center" />
+
+        <!-- nappi palveluiden lisäykselle -->
+        <Button Text="Lisää uusi palvelu"
+                Clicked="OnLisaysButtonClicked" 
+                HorizontalOptions="Center" />
+
+        
+
     </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
