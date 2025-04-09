@@ -1,0 +1,42 @@
+
+-- Test data for 'alue' table
+INSERT INTO vn.alue (nimi) VALUES
+('Lappi'),
+('Häme'),
+('Savo');
+
+-- Test data for 'posti' table
+INSERT INTO vn.posti (postinro, toimipaikka) VALUES
+('00100', 'Helsinki'),
+('33100', 'Tampere'),
+('70100', 'Kuopio');
+
+-- Test data for 'asiakas' table
+INSERT INTO vn.asiakas (postinro, etunimi, sukunimi, lahiosoite, email, puhelinnro) VALUES
+('00100', 'Matti', 'Meikäläinen', 'Esimerkkitie 1', 'matti@example.com', '0401234567'),
+('33100', 'Liisa', 'Testaaja', 'Koodikatu 2', 'liisa@testi.com', '0457654321');
+
+-- Test data for 'mokki' table
+INSERT INTO vn.mokki (alue_id, postinro, mokkinimi, katuosoite, hinta, kuvaus, henkilomaara, varustelu) VALUES
+(1, '00100', 'Lumikki', 'Joulukatu 24', 150.00, 'Hiihtomökki Lapissa', 4, 'Sauna, WiFi'),
+(2, '33100', 'Koivu', 'Kesäkatu 10', 100.00, 'Kesämökki järven rannalla', 6, 'Grilli, vene');
+
+-- Test data for 'varaus' table
+INSERT INTO vn.varaus (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm) VALUES
+(1, 1, NOW(), NOW(), '2025-06-01', '2025-06-07'),
+(2, 2, NOW(), NOW(), '2025-07-15', '2025-07-22');
+
+-- Test data for 'lasku' table
+INSERT INTO vn.lasku (lasku_id, varaus_id, summa, alv, maksettu) VALUES
+(1, 1, 1050.00, 24.00, 0),
+(2, 2, 800.00, 24.00, 1);
+
+-- Test data for 'palvelu' table
+INSERT INTO vn.palvelu (palvelu_id, alue_id, nimi, kuvaus, hinta, alv) VALUES
+(1, 1, 'Hiihtolippu', 'Päivälippu ladulle', 25.00, 10.00),
+(2, 2, 'Saunavuoro', 'Yksityinen saunavuoro', 35.00, 10.00);
+
+-- Test data for 'varauksen_palvelut' table
+INSERT INTO vn.varauksen_palvelut (varaus_id, palvelu_id, lkm) VALUES
+(1, 1, 2),
+(2, 2, 1);

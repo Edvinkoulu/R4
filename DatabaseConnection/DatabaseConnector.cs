@@ -5,7 +5,7 @@ public class DatabaseConnector
     private readonly string server = "localhost";
     private readonly string port = "3307";
     private readonly string uid = "root";
-    private readonly string pwd = "Ruutti";
+    private readonly string pwd = "ruutti"; //!!vaihda tähän oma salis
     private readonly string database = "vn";
     public DatabaseConnector()
     {
