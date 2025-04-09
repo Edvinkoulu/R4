@@ -70,7 +70,7 @@ public class MokkiViewModel : BindableObject
         }
     }
     private bool _isEditing;
-    private bool _isEditing2;
+    private bool _isEditing2 = true;
     public bool IsEditing
     {
         get => _isEditing;
