@@ -1,14 +1,66 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Village_Newbies.HallintaPage"
-             Title="Hallinta Page">
+             xmlns:vm="clr-namespace:Village_Newbies.ViewModels"
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
+
+    <ContentPage.BindingContext>
+        <!-- Set the BindingContext to MokkiViewModel -->
+        <vm:MokkiViewModel />
+    </ContentPage.BindingContext>
 
     <ScrollView>
-        <VerticalStackLayout Padding="30">
-        <Label Text="Welcome to the Hallinta page!"
-               FontSize="24"
-               HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <StackLayout Padding="20">
+        <!-- ListView to display all Mokkis -->
+        <CollectionView ItemsSource="{Binding Mokkis}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Margin="5" Padding="10" BorderColor="Gray">
+                        <StackLayout>
+                            <Label Text="{Binding mokki_id}" FontSize="18" />
+                            <Label Text="{Binding Mokkinimi}" FontSize="18" />
+                            <Label Text="{Binding Katuosoite}" FontSize="14" />
+                            <Label Text="{Binding Kuvaus}" FontSize="12" />
+                            <Label Text="{Binding Hinta, StringFormat='Price: {0:C}'}" FontSize="14" />
+                            
+                            <!-- Button to delete a Mokki -->
+                            <Button Text="Edit" Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.LoadMokkiForEditCommand}" CommandParameter="{Binding}"/>
+
+                            <Button Text="Delete" Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.DeleteMokkiCommand}" CommandParameter="{Binding}" />
+                        </StackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <StackLayout Padding="10">
+        <Picker x:Name="AluePicker" 
+        SelectedItem="{Binding SelectedAlue}"
+        Title="Select Alue" 
+        ItemsSource="{Binding AlueList}">
+            <Picker.ItemDisplayBinding>
+                <Binding Path="Nimi"/>
+            </Picker.ItemDisplayBinding>
+        </Picker>
+
+        <Entry Placeholder="Postinro" Text="{Binding NewMokki.Postinro}" />
+        <Entry Placeholder="Mokkinimi" Text="{Binding NewMokki.Mokkinimi}" />
+        <Entry Placeholder="Katuosoite" Text="{Binding NewMokki.Katuosoite}" />
+        <Entry Placeholder="Hinta" Text="{Binding NewMokki.Hinta}" Keyboard="Numeric"/>
+        <Entry Placeholder="Kuvaus" Text="{Binding NewMokki.Kuvaus}" />
+        <Entry Placeholder="Henkilomaara" Text="{Binding NewMokki.Henkilomaara}" Keyboard="Numeric"/>
+        <Entry Placeholder="Varustelu" Text="{Binding NewMokki.Varustelu}" />
+
+        <Button Text="Confirm Update"
+        Command="{Binding ConfirmUpdateMokkiCommand}"
+        IsVisible="{Binding IsEditing}" />
+        
+        <Button Text="Add Mokki" 
+        Command="{Binding AddMokkiCommand}"
+        IsVisible="{Binding IsEditing2}" />
+
+        </StackLayout>
+    </StackLayout>
     </ScrollView>
 </ContentPage>
