@@ -37,14 +37,12 @@
                 SemanticProperties.Hint="Connects to database"
                 Clicked="OnDatabaseClicked"
                 HorizontalOptions="Fill"/>
-            <!-- Demo-ohjelman napin koodi
-                <Button
-                x:Name="CounterBtn"
-                Text="Click me"
-                SemanticProperties.Hint="Counts the number of
-                times you click"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Fill" /> -->
+
+            <!-- Tämä nyt on väliaikaisesti tässä -->
+            <Button x:Name="SiirryAlueHallintaan" 
+                    Text="Hallitse alueita"
+                    Clicked="SiirryAlueHallintaan_Clicked" /> 
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

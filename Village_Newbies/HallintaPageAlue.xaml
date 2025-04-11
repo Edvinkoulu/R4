@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Village_Newbies.HallintaPageAlue"
+             xmlns:vm="clr-namespace:Village_Newbies.ViewModels"
+             BackgroundColor="{DynamicResource PageBackgroundColor}"
+             Title="Alueiden Hallinta">
+
+    <!-- Mahdollisia ViewModelin komentoja:
+            public bool IsNotEditing => !IsEditing;
+            public ICommand LoadAlueetCommand { get; }
+            public ICommand AddAlueCommand { get; }
+            public ICommand UpdateAlueCommand { get; }
+            public ICommand DeleteAlueCommand { get; }
+            public ICommand AsetaValittuAlueNullCommand { get; } -->
+
+<!-- Tätä ei pitäisi periaatteessa tarvita koska binding tehdään taustakoodissa? -->
+    <ContentPage.BindingContext>
+        <vm:AlueViewModel/>
+    </ContentPage.BindingContext>
+
+    <ScrollView Padding="20">
+        <StackLayout>
+            <VerticalStackLayout Padding="30"
+                                 HorizontalOptions="Center">
+                <Label Text="Alueiden Hallinta"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+
+            <!-- Tekstikenttä, johon käyttäjä voi syöttää uuden alueen nimen. 
+            Text-ominaisuus on sidottu (Binding) ViewModelin UusiAlueNimi-ominaisuuteen. 
+            Tämä tarkoittaa, että kun käyttäjä kirjoittaa tähän kenttään, 
+            ViewModelin vastaava ominaisuus päivittyy automaattisesti. -->
+            <Frame Margin="5"
+                   Padding="10"
+                   BorderColor="Gray">
+                <StackLayout Orientation="Horizontal"
+                             Spacing="10">
+                    <!-- Varsinainen syöttökenttä -->
+                    <Entry Placeholder="Uuden alueen nimi"
+                           Text="{Binding UusiAlueNimi}"/>
+                    <!-- Binding Command sitoo napin Command-ominaisuuden ViewModelin: 
+                    AddAlueCommand-nimiseen komentoon. Kun nappia painetaan, tämä komento suoritetaan ViewModelissa.
+                    Ja sitten collection view päivittyy automaattisesti -->
+                    <Button Command="{Binding Path=AddAlueCommand}" 
+                            IsEnabled="{Binding OnkoUusiAlueNimiValid}"> <!-- Nappi aktiivinen vain jos tämä on true viewmodelissa -->
+                        <Button.Triggers> <!-- Muuttaa napin tekstiä ja komentoa ViewModelin IsEditing-ominaisuuden arvon mukaan.  -->
+                            <DataTrigger TargetType="Button"
+                                         Binding="{Binding IsEditing}"
+                                         Value="True">
+                                <Setter Property="Text"
+                                        Value="Tallenna"/>
+                                <Setter Property="Command"
+                                        Value="{Binding UpdateAlueCommand}"/>
+                            </DataTrigger>
+                            <DataTrigger TargetType="Button"
+                                         Binding="{Binding IsEditing}"
+                                         Value="False">
+                                <Setter Property="Text"
+                                        Value="Lisää"/>
+                                <Setter Property="Command"
+                                        Value="{Binding AddAlueCommand}"/>
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </StackLayout>
+            </Frame>
+
+            <!-- Näyttää tietokantaan tallennetut alueet -->
+            <CollectionView ItemsSource="{Binding Alueet}"
+                            SelectedItem="{Binding SelectedAlue}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="5"
+                               Padding="10"
+                               BorderColor="Gray">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Text="{Binding alue_nimi}"
+                                       VerticalOptions="Center"
+                                       FontSize="18"/>
+                                <!-- Poista alue nappi -->
+                                <Button Grid.Column="1"
+                                        Text="Poista"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AlueViewModel}}, Path=DeleteAlueCommand}"
+                                        CommandParameter="{Binding .}"
+                                        VerticalOptions="Center"/>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -53,7 +53,7 @@ public class MokkiViewModel : BindableObject
             // Update NewMokki's alue_id when user selects a new Alue
             if (_selectedAlue != null)
             {
-                NewMokki.alue_id = _selectedAlue.alue_id;
+                NewMokki.alue_id = (int)_selectedAlue.alue_id; // Lisätty cast (int). En koskenut muuhun. Alue käyttää nyt uint tyyppistä muuttujaa id:ssä koska se muuten aiheutti ongelmia... JaniV
                 OnPropertyChanged(nameof(NewMokki)); // Optional, in case the UI isn't updating
             }
         }
