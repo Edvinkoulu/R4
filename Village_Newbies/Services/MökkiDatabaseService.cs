@@ -26,7 +26,7 @@ namespace Village_Newbies.Services
                 await conn.OpenAsync();  // Open the connection asynchronously
 
                 string query = @"INSERT INTO mokki (alue_id, postinro, mokkinimi, katuosoite, hinta, kuvaus, henkilomaara, varustelu)
-                                 VALUES (@AlueId, @Postinro, @Mokkinimi, @Katuosoite, @Hinta, @Kuvaus, @Henkilomaara, @Varustelu)";
+                                 VALUES (@alue_id, @Postinro, @Mokkinimi, @Katuosoite, @Hinta, @Kuvaus, @Henkilomaara, @Varustelu)";
                 
                 return await conn.ExecuteAsync(query, mokki); // Execute the query asynchronously using Dapper
             }
