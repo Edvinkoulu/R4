@@ -6,7 +6,7 @@ using System.Diagnostics;
 public class Alue
 {
     private const int NIMI_MAX_PITUUS = 40; //Maksimi pituus alueen nimelle. Tämä oli määritelty tietokannan luonti skriptissä.
-    private uint alueID; // Vaihdettu UINT muotoon koska niin myös tietokannassa(?)
+    private readonly uint alueID; // Vaihdettu UINT muotoon koska niin myös tietokannassa, int aiheuttaa ongelmia alue olioiden luonnin yhteydessä.
     private string? alueNimi;
 
     //Constructorit
@@ -16,12 +16,16 @@ public class Alue
     {
         alueNimi = _alue_nimi;
     }
+    public Alue(uint _alue_id, string _alue_nimi)
+    {
+        alueID = SyoteValidointi.TarkistaIDuint(_alue_id);
+        alueNimi = _alue_nimi;
+    }
 
     // Properties
     public uint alue_id
     {
         get => alueID;
-        set => alueID = SyoteValidointi.TarkistaIDuint(value);
     }
 
     public string? alue_nimi

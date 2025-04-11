@@ -69,7 +69,7 @@ public class AlueDatabaseService : DatabaseService, IAlueDatabaseService
         // Tarkistetaan sarakkeen tyyppi ja muunnetaan tarvittaessa int -> uint. Ehkä turhaa koodia?
         if (row["alue_id"] is int intValue)
         {
-            if (intValue > 0)
+            if (intValue < 0)
             {
                 throw new ArgumentOutOfRangeException($"Int32-arvo {intValue} ei saa olla negatiivinen alue_id-kentässä.");
             }
@@ -84,11 +84,7 @@ public class AlueDatabaseService : DatabaseService, IAlueDatabaseService
             throw new InvalidCastException($"Odottamaton tietotyyppi alue_id-kentässä: {row["alue_id"].GetType()}");
         }
 
-        return new Alue
-        {
-            alue_id = alueId,
-            alue_nimi = row["nimi"].ToString()
-        };
+        return new Alue(alueId, row["nimi"].ToString());
     }
 
     public override async Task<DataTable> HaeData(string sql, params (string, object)[] parameters)
