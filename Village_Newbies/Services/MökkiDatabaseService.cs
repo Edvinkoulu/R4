@@ -33,17 +33,11 @@ namespace Village_Newbies.Services
         }
 
         public async Task<List<Alue>> GetAllAlueAsync()
-{
-    using (var conn = _databaseConnector._getConnection())
-    {
-        await conn.OpenAsync();  // Open the connection asynchronously
-        string query = "SELECT * FROM alue"; // Simple SELECT query
-        var result = await conn.QueryAsync<Alue>(query); // Execute the query asynchronously and return the results
-
-        // Convert the result from IEnumerable<Alue> to List<Alue>
-        return result.ToList(); 
-    }
-}
+        {
+            AlueDatabaseService aluePalvelu = new AlueDatabaseService(_databaseConnector);
+            List<Alue> alueet = await aluePalvelu.HaeKaikki();
+            return alueet;
+        }
 
 
         // Read: Get all Mokkis

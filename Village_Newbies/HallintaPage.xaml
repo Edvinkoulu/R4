@@ -71,7 +71,7 @@
                         Title="Select Alue"
                         ItemsSource="{Binding AlueList}">
                     <Picker.ItemDisplayBinding>
-                        <Binding Path="Nimi"/>
+                        <Binding Path="alue_nimi"/>
                     </Picker.ItemDisplayBinding>
                 </Picker>
 
