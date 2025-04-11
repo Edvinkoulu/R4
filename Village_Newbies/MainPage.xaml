@@ -30,18 +30,13 @@
             <Button Text="Go to hallinta"
                 Clicked="Hallinta" />
 
-            <!-- UUDEN NAPIN KOODI -->
+            <!-- Yhteystesti nappi -->
             <Button
                 x:Name="DatabaseBtn"
                 Text="Connect to database"
                 SemanticProperties.Hint="Connects to database"
                 Clicked="OnDatabaseClicked"
                 HorizontalOptions="Fill"/>
-
-            <!-- Tämä nyt on väliaikaisesti tässä -->
-            <Button x:Name="SiirryAlueHallintaan" 
-                    Text="Hallitse alueita"
-                    Clicked="SiirryAlueHallintaan_Clicked" /> 
 
         </VerticalStackLayout>
     </ScrollView>
