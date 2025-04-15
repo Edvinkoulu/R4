@@ -20,4 +20,8 @@ public partial class HallintaPage : ContentPage
     {
         await Navigation.PushAsync(new HallintaPageAlue());
     }
+    private async void SiirryLaskuHallintaan_Clicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new HallintaPageLasku());
+    }
 }

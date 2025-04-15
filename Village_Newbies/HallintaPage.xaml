@@ -25,6 +25,10 @@
                 <Button x:Name="SiirryAlueHallintaan"
                         Text="Hallitse alueita"
                         Clicked="SiirryAlueHallintaan_Clicked"/>
+                
+                <Button x:Name="SiirryLaskuHallintaan"
+                        Text="Hallitse laskuja"
+                        Clicked="SiirryLaskuHallintaan_Clicked"/>
 
                 <Button Text="Lisää uusi palvelu"
                         Clicked="OnLisaysButtonClicked"

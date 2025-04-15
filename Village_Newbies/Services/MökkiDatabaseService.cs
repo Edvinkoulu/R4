@@ -51,7 +51,18 @@ namespace Village_Newbies.Services
                 return await conn.QueryAsync<Mokki>(query); // Execute the query asynchronously and return the results
             }
         }
+        public async Task<List<Mokki>> GetAllMokkiInAlue(int alueId) // Lisätty laskujenhallintaa varten, JaniV
+        {
+            using (var conn = _databaseConnector._getConnection())
+            {
+                await conn.OpenAsync();
 
+                string query = "SELECT * FROM mokki WHERE alue_id = @AlueId";
+                var mokit = await conn.QueryAsync<Mokki>(query, new { AlueId = alueId });
+
+                return mokit.ToList();
+            }
+        }
         // Read: Get Mokki by ID
         public async Task<Mokki> GetMokkiByIdAsync(int mokkiId)
         {
