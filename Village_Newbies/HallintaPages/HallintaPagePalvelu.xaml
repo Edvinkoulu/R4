@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:Village_Newbies.ViewModels"
+             x:Class="Village_Newbies.HallintaPages.HallintaPagePalvelu"
+             Title="Lisää palvelu">
+
+    <ContentPage.BindingContext>
+        <viewmodels:PalveluViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+       <VerticalStackLayout Padding="30"
+                                 HorizontalOptions="Center">
+                <Label Text="Palveluiden Hallinta"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+
+            <!-- Lomakekentät -->
+            <Entry Placeholder="Palvelun nimi"
+                   Text="{Binding NewPalvelu.Nimi}" />
+
+            <Entry Placeholder="Palvelun kuvaus"
+                   Text="{Binding NewPalvelu.Kuvaus}" />
+
+            <Entry Placeholder="Hinta"
+                   Keyboard="Numeric"
+                   Text="{Binding NewPalvelu.Hinta}" />
+
+            <Entry Placeholder="ALV (%)"
+                   Keyboard="Numeric"
+                   Text="{Binding NewPalvelu.Alv}" />
+
+            <Picker Title="Valitse alue"
+                    ItemsSource="{Binding AlueList}"
+                    SelectedItem="{Binding SelectedAlue}" />
+
+            <!-- Lisää tai päivitä -napit -->
+            <Button Text="Tallenna"
+                    Command="{Binding AddPalveluCommand}"
+                    IsVisible="{Binding IsEditing2}" />
+
+            <Button Text="Päivitä"
+                    Command="{Binding ConfirmUpdatePalveluCommand}"
+                    IsVisible="{Binding IsEditing}" />
+
+            <!-- Lista olemassa olevista palveluista -->
+            <Label Text="Nykyiset palvelut"
+                   FontSize="20"
+                   Margin="0,20,0,0" />
+
+            <CollectionView ItemsSource="{Binding Palvelut}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="5" Padding="10" BorderColor="LightGray">
+                            <StackLayout>
+                                <Label Text="{Binding Nimi}" FontAttributes="Bold"/>
+                                <Label Text="{Binding Kuvaus}" FontSize="Small"/>
+                                <Label Text="{Binding Hinta}" FontSize="Small" TextColor="DarkGreen"/>
+
+                                <StackLayout Orientation="Horizontal" Spacing="10">
+                                    <Button Text="Muokkaa"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.LoadPalveluForEditCommand}"
+                                            CommandParameter="{Binding}" />
+
+                                    <Button Text="Poista"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeletePalveluCommand}"
+                                            CommandParameter="{Binding}" />
+                                </StackLayout>
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

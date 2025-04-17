@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Village_Newbies"
+    xmlns:views="clr-namespace:Village_Newbies.HallintaPages"
     Shell.FlyoutBehavior="Disabled"
     Title="Village_Newbies">
 
@@ -11,5 +12,23 @@
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
+
+        <!--HallintaTab-->
+            <FlyoutItem Title="Hallinta">
+     <Tab Title="Hallinta">
+        <ShellContent Title="Mökit"
+                      Route="MokkiPage"
+                      ContentTemplate="{DataTemplate views:HallintaPageMokki}" />
+        <ShellContent Title="Alueet"
+                    Route="AluePage"
+                    ContentTemplate="{DataTemplate views:HallintaPageAlue}" />
+        <ShellContent Title="Laskut"
+                    Route="LaskuPage"
+                    ContentTemplate="{DataTemplate views:HallintaPageLasku}" />      
+        <ShellContent Title="Palvelut"
+                    Route="PalveluPage"
+                    ContentTemplate="{DataTemplate views:HallintaPagePalvelu}" />                  
+    </Tab>
+</FlyoutItem>
 
 </Shell>

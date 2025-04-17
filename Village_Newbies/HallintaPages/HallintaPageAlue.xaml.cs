@@ -1,4 +1,4 @@
-namespace Village_Newbies;
+namespace Village_Newbies.HallintaPages;
 using Village_Newbies.Services;
 using Village_Newbies.ViewModels;
 using Microsoft.Maui.Controls;
