@@ -53,3 +53,4 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 DatabaseConnection/DatabaseConnector.cs
+Village_Newbies/Village_Newbies.csproj.user
