@@ -32,10 +32,12 @@ public class Alue
     {
         get
         {
+            /*
             if (alueNimi == null || alueNimi == "")
             {
                 Debug.WriteLine("Hallinta: Alue.cs: Alueen nimi on null tai tyhjä.");
-            }
+            } 
+            */
             return alueNimi;
         }
         set => alueNimi = SyoteValidointi.TarkistaString(value, NIMI_MAX_PITUUS);

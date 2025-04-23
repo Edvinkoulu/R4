@@ -24,6 +24,7 @@ public class LaskuViewModel : INotifyPropertyChanged
     private readonly AlueDatabaseService _alueDb = new();
 
     public ObservableCollection<Lasku> Laskut { get; } = new();
+    private ObservableCollection<Lasku> _kaikkiLaskut = new(); 
     public ObservableCollection<Varaus> Varaukset { get; } = new();
     public ObservableCollection<Alue> Alueet { get; } = new();
     public ObservableCollection<Mokki> Mokit { get; } = new();
@@ -37,6 +38,7 @@ public class LaskuViewModel : INotifyPropertyChanged
         HaeSuodatetutLaskutCommand = new Command(async () => await HaeSuodatetutLaskut());
         ValitseLaskuCommand = new Command<Lasku>(l => ValittuLasku = l);
         TyhjennaValinnatCommand = new Command(async () => await TyhjennaValinnat());
+        SuodataMaksamattomatCommand = new Command(SuodataMaksamattomat);
     }
     public async Task InitializeAsync()
     {
@@ -180,6 +182,7 @@ public class LaskuViewModel : INotifyPropertyChanged
     public ICommand HaeSuodatetutLaskutCommand { get; }
     public ICommand ValitseLaskuCommand { get; }
     public ICommand TyhjennaValinnatCommand { get; }
+    public ICommand SuodataMaksamattomatCommand { get; }
     // =========================================
     // ========= Tietojen haku ================= Nämä metodit käyttää databaseservicejä tietojen hakemiseen
     // =========================================
@@ -189,9 +192,10 @@ public class LaskuViewModel : INotifyPropertyChanged
         {
             await Task.WhenAll(
                 Load(Alueet, _alueDb.HaeKaikki),
-                Load(Laskut, _laskuDb.HaeKaikki),
+                Load(_kaikkiLaskut, _laskuDb.HaeKaikki), 
                 Load(Varaukset, _laskuDb.HaeKaikkiVaraukset)
             );
+            PaivitaNaytettavatLaskut(_kaikkiLaskut.ToList());
             await HaeMokit();
             await HaeAsiakkaat();
         }
@@ -240,6 +244,19 @@ public class LaskuViewModel : INotifyPropertyChanged
         {
             await ShowAlert("Virhe suodatuksessa", ex.Message);
         }
+    }    
+    private void PaivitaNaytettavatLaskut(List<Lasku> laskut)
+    {
+        Laskut.Clear();
+        foreach (var lasku in laskut)
+        {
+            Laskut.Add(lasku);
+        }
+    }
+    private void SuodataMaksamattomat()
+    {
+        var maksamattomat = _kaikkiLaskut.Where(l => !l.maksettu).ToList();
+        PaivitaNaytettavatLaskut(maksamattomat);
     }
     // =========================================
     // ============== Tapahtumat =============== Näitä käytetään käyttöliittymän päivittämiseen kun sitä tarvitaan

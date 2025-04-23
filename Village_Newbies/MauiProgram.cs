@@ -15,6 +15,9 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
+			// Ohjelma kaatuu jos tämä rivi puuttuu ja käytetään QuestPDF:ää
+			QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif

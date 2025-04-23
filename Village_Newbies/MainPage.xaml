@@ -30,6 +30,9 @@
             <Button Text="Go to hallinta"
                 Clicked="Hallinta" />
 
+            <Button Text="Go to laskutus"
+                Clicked="Laskutus" />
+
             <!-- Yhteystesti nappi -->
             <Button
                 x:Name="DatabaseBtn"
