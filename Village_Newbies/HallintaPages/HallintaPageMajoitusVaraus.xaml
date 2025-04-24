@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Village_Newbies.HallintaPages.HallintaPageMajoitusVaraus"
+             BackgroundColor="{DynamicResource PageBackgroundColor}"
+             Title="HallintaPageMajoitusVaraus">
+
+    <ScrollView Padding="20">
+        <StackLayout>
+            <VerticalStackLayout Padding="30" HorizontalOptions="Center">
+                <Label Text="Majoitusvarausten hallinta"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+
+            <!-- Hakuehdot -->
+            <Label Text="Suodata mökkejä:" FontSize="18" Margin="0,10,0,0"/>
+            <Frame Margin="5" Padding="10" BorderColor="Gray">
+                <StackLayout Spacing="10">
+                    <Picker x:Name="AreaPicker" Title="Valitse alue">
+                        <Picker.ItemsSource>
+                            <x:Array Type="{x:Type x:String}">
+                                <x:String>Kaikki</x:String>
+                                <x:String>Ruka</x:String>
+                                <x:String>Tahko</x:String>
+                                <x:String>Ylläs</x:String>
+                            </x:Array>
+                        </Picker.ItemsSource>
+                    </Picker>
+
+                    <DatePicker x:Name="StartDatePicker" />
+                    <DatePicker x:Name="EndDatePicker" />
+
+                    <Label Text="Hintahaarukka:" />
+                    <HorizontalStackLayout>
+                        <Entry x:Name="MinPriceEntry" Placeholder="Min" Keyboard="Numeric" WidthRequest="100"/>
+                        <Entry x:Name="MaxPriceEntry" Placeholder="Max" Keyboard="Numeric" WidthRequest="100"/>
+                    </HorizontalStackLayout>
+
+                    <CheckBox x:Name="OnlyAvailableCheckBox"/>
+                    <Label Text="Näytä vain vapaat mökit"/>
+
+                    <Button Text="Hae mökit"
+                            Clicked="OnSearchClicked"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Varauslomake -->
+            <Label Text="Tee varaus:" FontSize="18" Margin="0,10,0,0"/>
+            <Frame Margin="5" Padding="10" BorderColor="Gray">
+                <StackLayout Spacing="10">
+                    <Label Text="Asiakkaan nimi:"/>
+                    <Entry x:Name="CustomerNameEntry"/>
+
+                    <Label Text="Puhelin:"/>
+                    <Entry x:Name="PhoneEntry" Keyboard="Telephone"/>
+
+                    <Label Text="Sähköposti:"/>
+                    <Entry x:Name="EmailEntry" Keyboard="Email"/>
+
+                    <Label Text="Lisäpalvelut:"/>
+                    <Entry x:Name="ServicesEntry" Placeholder="Esim. porosafari, saunavuoro"/>
+
+                    <Button Text="Tallenna varaus"
+                            Clicked="OnSaveReservationClicked"
+                            BackgroundColor="DarkGreen"
+                            TextColor="White"/>
+                </StackLayout>
+            </Frame>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
