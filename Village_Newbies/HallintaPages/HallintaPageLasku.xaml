@@ -20,14 +20,14 @@
                      </VerticalStackLayout>
 
                      <!-- Elementti 1: Laskuje suodattimet -->
-                     <Label Text="Suodata laskuja:"
-                            FontSize="18"
-                            Margin="0,10,0,0"/>
                      <Frame Margin="5"
                             Padding="10"
                             BorderColor="Gray">
                             <StackLayout Spacing="10">
-
+                                   <Label Text="{Binding Laskut.Count, StringFormat='Suodatettujen laskujen lukumäärä: {0}'}"
+                                          FontSize="18"
+                                          FontAttributes="Bold"
+                                          Margin="0,10,0,0"/>
                                    <Picker ItemsSource="{Binding Alueet}"
                                            SelectedItem="{Binding ValittuAlue}"
                                            ItemDisplayBinding="{Binding alue_nimi}"
@@ -39,70 +39,25 @@
                                            Title="Valitse mökki"/>
 
                                    <Picker ItemsSource="{Binding Asiakkaat}"
-                                           SelectedItem="{Binding ValittuAsiakas}"
-                                           ItemDisplayBinding="{Binding sukunimi}"
+                                           SelectedItem="{Binding ValittuAsiakas, Mode=TwoWay}"
+                                           ItemDisplayBinding="{Binding kokoNimi}"
                                            Title="Valitse asiakas"/>
 
                                    <Button Text="Hae suodatetut laskut"
                                            Command="{Binding HaeSuodatetutLaskutCommand}"
                                            BackgroundColor="LightBlue"
                                            Margin="0,10,0,0"/>
+                                   <Button Text="Näytä kaikki maksamattomat"
+                                           Command="{Binding SuodataMaksamattomatCommand}"
+                                           BackgroundColor="LightBlue"
+                                           Margin="0,0,0,0"/>
                                    <Button Text="Tyhjennä valinnat"
                                            Command="{Binding TyhjennaValinnatCommand}"
-                                           BackgroundColor="LightBlue"
                                            Margin="0,10,0,0"/>
+
                             </StackLayout>
                      </Frame>
-
-                     <!-- Elementti 2: Lista laskuista -->
-                     <Label Text="Laskut järjestelmässä:"
-                            FontSize="18"
-                            Margin="0,10,0,0"/>
-                     <Button Text="Suodata maksamattomat"
-                             Command="{Binding SuodataMaksamattomatCommand}"
-                             Margin="5,0,5,5"/>
-                     <CollectionView ItemsSource="{Binding Laskut}"
-                                     SelectedItem="{Binding ValittuLasku}">
-                            <CollectionView.ItemTemplate>
-                                   <DataTemplate>
-                                          <Frame Margin="5"
-                                                 Padding="10"
-                                                 BorderColor="LightGray">
-
-                                                 <Grid ColumnSpacing="10">
-                                                        <Grid.ColumnDefinitions>
-                                                               <ColumnDefinition Width="Auto"/>
-                                                               <ColumnDefinition Width="*"/>
-                                                               <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <StackLayout Grid.Column="0">
-                                                               <Label Text="{Binding lasku_id}"
-                                                                      FontAttributes="Bold"/>
-                                                        </StackLayout>
-                                                        <StackLayout Grid.Column="1">
-                                                               <!-- Aikarajoitteen takia en kerennyt tehdä tähän järkevää tapaa näyttää asiakkaan nimeä. Pitää tehdä myöhemmin -->
-                                                               <Label Text="{Binding varaus_id, StringFormat='Varauksen ID: {0}'}"/>
-                                                               <Label Text="{Binding summa, StringFormat='Summa: {0:C}'}"/>
-                                                               <Label Text="{Binding alv, StringFormat='ALV: {0}%'}"/>
-                                                               <Label Text="{Binding maksettu, StringFormat='Maksettu: {0}'}"/>
-                                                        </StackLayout>
-                                                        <HorizontalStackLayout Grid.Column="2"
-                                                                               Spacing="5">
-                                                               <Button Text="Valitse"
-                                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=ValitseLaskuCommand}"
-                                                                       CommandParameter="{Binding .}"/>
-                                                               <Button Text="Poista"
-                                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=PoistaLaskuCommand}"
-                                                                       CommandParameter="{Binding .}"/>
-                                                        </HorizontalStackLayout>
-                                                 </Grid>
-                                          </Frame>
-                                   </DataTemplate>
-                            </CollectionView.ItemTemplate>
-
-                            <!-- Elementti 3: Laskun muokkaus näkymä-->
-                     </CollectionView>
+                     <!-- Elementti 2: Laskun muokkaus näkymä, varmaan mukavampi toisena, jos laskuja on paljon -->
                      <Label Text="Muokkaa laskua:"
                             FontSize="18"
                             Margin="0,10,0,0"/>
@@ -151,6 +106,60 @@
                                    </Grid>
                             </StackLayout>
                      </Frame>
+                     <!-- Elementti 3: Lista laskuista -->
+                     <Label Text="Laskut järjestelmässä:"
+                            FontSize="18"
+                            Margin="0,10,0,0"/>
+                     <CollectionView ItemsSource="{Binding Laskut}"
+                                     SelectedItem="{Binding ValittuLasku}">
+                            <CollectionView.ItemTemplate>
+                                   <DataTemplate>
+                                          <Frame Margin="5"
+                                                 Padding="10"
+                                                 BorderColor="LightGray">
+
+                                                 <Grid ColumnSpacing="10">
+                                                        <Grid.ColumnDefinitions>
+                                                               <ColumnDefinition Width="Auto"/>
+                                                               <ColumnDefinition Width="*"/>
+                                                               <ColumnDefinition Width="*"/>
+                                                               <ColumnDefinition Width="6*"/>
+                                                               <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackLayout Grid.Column="0">
+                                                               <Label Text="{Binding lasku_id, StringFormat='Lasku ID: {0}'}"
+                                                                      FontAttributes="Bold"/>
+                                                        </StackLayout>
+                                                        <StackLayout Grid.Column="1">
+                                                               <Label Text="{Binding varaus_id, StringFormat='Varauksen ID: {0}'}"/>
+                                                               <Label Text="{Binding summa, StringFormat='Summa: {0:C}'}"/>
+                                                               <Label Text="{Binding alv, StringFormat='ALV: {0}%'}"/>
+                                                               <Label Text="{Binding maksettu, StringFormat='Maksettu: {0}'}"/>
+                                                        </StackLayout>
+                                                        <StackLayout Grid.Column="2">
+                                                               <Label Text="{Binding AsiakasId, StringFormat='Asiakas ID: {0}'}"/>
+                                                               <Label Text="{Binding AsiakkaanKokoNimi, StringFormat='Nimi: {0}'}"/>
+                                                        </StackLayout>
+                                                        <StackLayout Grid.Column="3">
+                                                               <Label Text=""/>
+                                                               <Label Text="{Binding AsiakkaanOsoite, StringFormat='{0}'}"/>
+                                                               <Label Text="{Binding AsiakkaanEmail, StringFormat='{0}'}"/>
+                                                               <Label Text="{Binding AsiakkaanPuhNro, StringFormat='{0}'}"/>
+                                                        </StackLayout>
+                                                        <HorizontalStackLayout Grid.Column="4"
+                                                                               Spacing="5">
+                                                               <Button Text="Valitse"
+                                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=ValitseLaskuCommand}"
+                                                                       CommandParameter="{Binding .}"/>
+                                                               <Button Text="Poista"
+                                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=PoistaLaskuCommand}"
+                                                                       CommandParameter="{Binding .}"/>
+                                                        </HorizontalStackLayout>
+                                                 </Grid>
+                                          </Frame>
+                                   </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                     </CollectionView>
               </StackLayout>
        </ScrollView>
 </ContentPage>

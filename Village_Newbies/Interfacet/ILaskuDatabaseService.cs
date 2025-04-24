@@ -7,6 +7,7 @@ public interface ILaskuDatabaseService
 {
     Task<Lasku> Hae(int id);
     Task<List<Lasku>> HaeKaikki();
+    Task<Asiakas> HaeAsiakas(uint id);
     Task Lisaa(Lasku lasku);
     Task Muokkaa(Lasku lasku);
     Task Poista(int id);

@@ -1,14 +1,41 @@
 namespace Village_Newbies.Services;
-
 using Village_Newbies.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
+
+// Lähetä lasku sähköpostiin kutsumalla LahetaEmailLasku tai tulosta paperilasku LuoLaskuPdf metodilla
+// Anna parametreiksi tietokannasta kaivetut: lasku, varaus, asiakas, mökki ja lista asiakkaan valitsemista palveluista.
+// PDF tiedosto tallennetaan MyDocuments (tai Tiedostot) kansioon.
 
 public class LaskutusService
 {
+    public async void LuoJaLahetaEmailLasku(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki, List<Palvelu> valitutPalvelut)
+    {
+        LuoLaskuPdf(lasku, varaus, asiakas, mokki, valitutPalvelut);
+        {
+            if (asiakas != null && !string.IsNullOrEmpty(asiakas.email))
+            {
+                string subject = $"Uusi Lasku - Varaus {varaus.varaus_id}";
+                string body = $"Hyvä {asiakas.etunimi} {asiakas.sukunimi},\n\n" +
+                              "Liitteenä löydät laskun varauksestanne.\n\n" +
+                              "Kiitos varauksestanne!\n\n" +
+                              "Ystävällisin terveisin,\n" +
+                              "Village Newbies";
+
+                await Application.Current.MainPage.DisplayAlert("Sähköposti Luonnosteltu", $"Vastaanottaja: {asiakas.email}\nAihe: {subject}\nSisältö: {body}\n\n(Liite: Lasku_{lasku.lasku_id}_{asiakas.sukunimi}.pdf - (simuloitu lähetys)", "OK");
+                // Tähän sähköpostin lähetys koodit.
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Virhe", "Asiakkaan sähköpostiosoitetta ei löydy.", "OK");
+            }
+        }
+    }
+
     public void LuoLaskuPdf(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki, List<Palvelu> valitutPalvelut)
     {
         var document = Document.Create(container =>
@@ -73,7 +100,7 @@ public class LaskutusService
 
     private void LisaaLaskutaulukko(ColumnDescriptor column, Lasku lasku, Varaus varaus, List<Palvelu> valitutPalvelut)
     {
-        decimal kokonaissumma = LaskeKokonaissumma(lasku, valitutPalvelut);
+        double kokonaissumma = LaskeKokonaissumma(lasku, valitutPalvelut);
 
         column.Item().Table(table =>
         {
@@ -114,9 +141,34 @@ public class LaskutusService
         });
     }
 
-    private decimal LaskeKokonaissumma(Lasku lasku, List<Palvelu> palvelut)
+    private double LaskeKokonaissumma(Lasku lasku, List<Palvelu> palvelut)
     {
-        decimal perushinta = (decimal)lasku.summa + palvelut.Sum(p => (decimal)p.Hinta);
-        return perushinta * (1 + (decimal)lasku.alv / 100);
+        double kokonaissumma = (double)lasku.summa * (1 + (double)lasku.alv / 100); // Lasketaan majoituksen osuus ALV:lla
+
+        foreach (var palvelu in palvelut)
+        {
+            try
+            {
+                SyoteValidointi.TarkistaDouble(palvelu.Hinta, 0, double.MaxValue);
+                SyoteValidointi.TarkistaDouble(palvelu.Alv, 0, 100);
+                kokonaissumma += (double)palvelu.Hinta * (1 + (double)palvelu.Alv / 100);
+            }
+            catch (Exception ex)
+            {
+                Application.Current.MainPage.DisplayAlert("Virhe laskun summassa", $"{ex.Message}, Palvelun tiedot: {palvelu.Nimi}, {palvelu.Alv}, {palvelu.Hinta}. Luo lasku uudelleen korjausten jälkeen.", "Jatka");
+                Debug.WriteLine($"Virheellinen syöte palvelua {palvelu.Nimi}, {palvelu.Alv}, {palvelu.Hinta} laskettaessa: {ex.Message}");
+                // Laskenta jatkuu, mutta virhe on ilmoitettu.
+            }
+        }
+        try
+        {
+            return SyoteValidointi.TarkistaDouble(kokonaissumma, 0, double.MaxValue);
+        }
+        catch (Exception ex)
+        {
+            Application.Current.MainPage.DisplayAlert("Virhe", $"{ex.Message}", "OK");
+            Debug.WriteLine($"Virheellinen kokonaissumma: {ex.Message}");
+            return 0; // Palautetaan 0 virheen sattuessa kokonaissummassa.
+        }
     }
 }

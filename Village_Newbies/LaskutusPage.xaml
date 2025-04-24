@@ -18,6 +18,11 @@
                 Clicked="OnLuoLaskuButtonClicked"
                 HorizontalOptions="Center" />
 
+            <Button
+                Text="Lähetä sähköposti lasku (simuloitu)"
+                Clicked="OnLahetaSahkopostiLaskuButtonClicked"
+                HorizontalOptions="Center" />
+
         </VerticalStackLayout>
     </ScrollView>
 
