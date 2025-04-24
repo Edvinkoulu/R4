@@ -10,6 +10,7 @@
     <views:HallintaPageAlue Title="Alueet"/>
     <views:HallintaPageLasku Title="Laskut" />
     <views:HallintaPagePalvelu Title="Palvelut" />
+    <views:HallintaPageMajoitusVaraus Title="Majoitusvarausten hallinta"/>
  
 
 </TabbedPage>
