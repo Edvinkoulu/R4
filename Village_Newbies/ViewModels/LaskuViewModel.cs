@@ -3,11 +3,11 @@ namespace Village_Newbies.ViewModels;
 using Village_Newbies.Models;
 using Village_Newbies.Services;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
-using System.Diagnostics;
 using System.Linq;
 using System;
 
@@ -22,12 +22,15 @@ public class LaskuViewModel : INotifyPropertyChanged
     private readonly LaskuDatabaseService _laskuDb = new();
     private readonly MokkiDatabaseService _mokkiDb = new();
     private readonly AlueDatabaseService _alueDb = new();
+    private readonly LaskutusService _laskutusService = new();
 
     public ObservableCollection<Lasku> Laskut { get; } = new();
+    private ObservableCollection<Lasku> _kaikkiLaskut = new();
     public ObservableCollection<Varaus> Varaukset { get; } = new();
     public ObservableCollection<Alue> Alueet { get; } = new();
     public ObservableCollection<Mokki> Mokit { get; } = new();
     public ObservableCollection<Asiakas> Asiakkaat { get; } = new();
+    private ObservableCollection<Asiakas> _kaikkiAsiakkaat = new();
     public LaskuViewModel()
     {
         HaeDataCommand = new Command(async () => await LoadData());
@@ -37,11 +40,15 @@ public class LaskuViewModel : INotifyPropertyChanged
         HaeSuodatetutLaskutCommand = new Command(async () => await HaeSuodatetutLaskut());
         ValitseLaskuCommand = new Command<Lasku>(l => ValittuLasku = l);
         TyhjennaValinnatCommand = new Command(async () => await TyhjennaValinnat());
+        SuodataMaksamattomatCommand = new Command(SuodataMaksamattomat);
+        // TulostaLaskuCommand = new Command(async () => await TulostaValittuLasku()); TODO jos ehditään
+        // LahetaLaskuEmailillaCommand = new Command(async () => await LahetaValittuLaskuEmaililla()); TODO jos ehditään
+
     }
     public async Task InitializeAsync()
     {
         await LoadData();
-    } 
+    }
     // =========================================
     // ========= Propertyt: Valinnat =========== Nämä siis pitävät kirjaa mitä käyttäjä on valinnut käyttöliittymästä
     // =========================================
@@ -55,7 +62,8 @@ public class LaskuViewModel : INotifyPropertyChanged
     public Mokki ValittuMokki
     {
         get => _selectedMokki;
-        set => SetProperty(ref _selectedMokki, value);
+        set => SetProperty(ref _selectedMokki, value, async () => await PaivitaAsiakasListaa());
+
     }
     private Asiakas _selectedAsiakas;
     public Asiakas ValittuAsiakas
@@ -110,8 +118,6 @@ public class LaskuViewModel : INotifyPropertyChanged
     // =========================================
     // ========= Propertyt: Näyttö ============= Infoa käyttäjälle
     // =========================================
-    public string VarausInfo => ValittuVaraus == null ? "" : $"Varaus: {ValittuVaraus.varaus_id}, Asiakas: {VarausAsiakas}, Mökki: {VarausMokki}, {VarausPvm}";
-
     public string VarausAsiakas
     {
         get => _varausAsiakas;
@@ -180,6 +186,9 @@ public class LaskuViewModel : INotifyPropertyChanged
     public ICommand HaeSuodatetutLaskutCommand { get; }
     public ICommand ValitseLaskuCommand { get; }
     public ICommand TyhjennaValinnatCommand { get; }
+    public ICommand SuodataMaksamattomatCommand { get; }
+    // public ICommand TulostaLaskuCommand { get; } TODO jos ehditään
+    // public ICommand LahetaLaskuEmailillaCommand { get; } TODO Tehdään jos ehditään
     // =========================================
     // ========= Tietojen haku ================= Nämä metodit käyttää databaseservicejä tietojen hakemiseen
     // =========================================
@@ -189,11 +198,17 @@ public class LaskuViewModel : INotifyPropertyChanged
         {
             await Task.WhenAll(
                 Load(Alueet, _alueDb.HaeKaikki),
-                Load(Laskut, _laskuDb.HaeKaikki),
-                Load(Varaukset, _laskuDb.HaeKaikkiVaraukset)
+                Load(_kaikkiLaskut, _laskuDb.HaeKaikki),
+                Load(Varaukset, _laskuDb.HaeKaikkiVaraukset),
+                Load(_kaikkiAsiakkaat, _laskuDb.HaeKaikkiAsiakkaat)
             );
+            PaivitaNaytettavatLaskut(_kaikkiLaskut.ToList());
+            Asiakkaat.Clear();
+            foreach (var asiakas in _kaikkiAsiakkaat.OrderBy(a => a.sukunimi).DistinctBy(a => a.asiakas_id))
+            {
+                Asiakkaat.Add(asiakas);
+            }
             await HaeMokit();
-            await HaeAsiakkaat();
         }
         catch (Exception ex)
         {
@@ -214,13 +229,58 @@ public class LaskuViewModel : INotifyPropertyChanged
 
         foreach (var mokki in mokit.OrderBy(m => m.Mokkinimi))
             Mokit.Add(mokki);
+
+        // Kun mökkilista päivittyy, päivitetään myös asiakaslista (jos mökki on valittu)
+        if (ValittuMokki != null)
+        {
+            await PaivitaAsiakasListaa();
+        }
+        else
+        {   // Jos mökkiä ei ole valittu, palautetaan kaikki uniikit asiakkaat
+            Asiakkaat.Clear();
+            foreach (var asiakas in _kaikkiAsiakkaat.OrderBy(a => a.sukunimi).DistinctBy(a => a.asiakas_id))
+            {
+                Asiakkaat.Add(asiakas);
+            }
+        }
     }
-    private async Task HaeAsiakkaat()
+    private async Task PaivitaAsiakasListaa()
     {
-        Asiakkaat.Clear();
-        var asiakkaat = await _laskuDb.HaeKaikkiAsiakkaat();
-        foreach (var asiakas in asiakkaat.OrderBy(a => a.sukunimi))
-            Asiakkaat.Add(asiakas);
+        if (ValittuMokki != null)
+        {
+            // Hae vain ne asiakkaat, joilla on varauksia valittuun mökkiin
+            Asiakkaat.Clear();
+            var asiakkaat = await HaeAsiakkaatJoillaOnVarausMokkiin((int)ValittuMokki.mokki_id);
+            foreach (var asiakas in asiakkaat.OrderBy(a => a.sukunimi).DistinctBy(a => a.asiakas_id))
+            {
+                Asiakkaat.Add(asiakas);
+            }
+        }
+        else
+        {
+            // Jos mökkiä ei ole valittu, palautetaan kaikki uniikit asiakkaat
+            Asiakkaat.Clear();
+            foreach (var asiakas in _kaikkiAsiakkaat.OrderBy(a => a.sukunimi).DistinctBy(a => a.asiakas_id))
+            {
+                Asiakkaat.Add(asiakas);
+            }
+        }
+    }
+    private async Task<List<Asiakas>> HaeAsiakkaatJoillaOnVarausMokkiin(int mokkiId)
+    {
+        var asiakkaat = new List<Asiakas>();
+        var varaukset = Varaukset.Where(v => v.mokki_id == mokkiId).ToList();
+        var asiakasIdt = varaukset.Select(v => v.asiakas_id).Distinct().ToList();
+
+        foreach (var id in asiakasIdt)
+        {
+            var asiakas = _kaikkiAsiakkaat.FirstOrDefault(a => a.asiakas_id == id); // Haetaan välimuistista
+            if (asiakas != null)
+            {
+                asiakkaat.Add(asiakas);
+            }
+        }
+        return asiakkaat;
     }
     private async Task HaeSuodatetutLaskut()
     {
@@ -234,12 +294,49 @@ public class LaskuViewModel : INotifyPropertyChanged
 
             Laskut.Clear();
             foreach (var lasku in suodatetut)
+            {
+                lasku.ViewModel = this;
                 Laskut.Add(lasku);
+            }
         }
         catch (Exception ex)
         {
             await ShowAlert("Virhe suodatuksessa", ex.Message);
         }
+    }
+    private void PaivitaNaytettavatLaskut(List<Lasku> laskut)
+    {
+        Laskut.Clear();
+        foreach (var lasku in laskut)
+        {
+            lasku.ViewModel = this; // Aseta ViewModel-viittaus, tarvitaan asiakkaiden tietojen näyttämiseen suodatettujen laskujen listassa.
+            Laskut.Add(lasku);
+        }
+    }
+    private void SuodataMaksamattomat()
+    {
+        var maksamattomat = _kaikkiLaskut.Where(l => !l.maksettu).ToList();
+        PaivitaNaytettavatLaskut(maksamattomat);
+    }
+    public uint HaeAsiakasId(uint varausId)
+    {
+        return HaeAsiakas(varausId)?.asiakas_id ?? 0;
+    }
+    public string HaeAsiakkaanKokoNimi(uint varausId)
+    {
+        return HaeAsiakas(varausId)?.kokoNimi ?? "Tuntematon";
+    }
+    public string HaeAsiakkaanOsoite(uint varausId)
+    {
+        return HaeAsiakas(varausId)?.lahiosoite ?? "Tuntematon";
+    }
+    public string HaeAsiakkaanEmail(uint varausId)
+    {
+        return HaeAsiakas(varausId)?.email ?? "Tuntematon";
+    }
+    public string HaeAsiakkaanPuhNro(uint varausId)
+    {
+        return HaeAsiakas(varausId)?.puhelinnro ?? "Tuntematon";
     }
     // =========================================
     // ============== Tapahtumat =============== Näitä käytetään käyttöliittymän päivittämiseen kun sitä tarvitaan
@@ -292,10 +389,41 @@ public class LaskuViewModel : INotifyPropertyChanged
             ? $"Ajanjakso: {ValittuVaraus.varattu_alkupvm:d} - {ValittuVaraus.varattu_loppupvm:d}"
             : "Päivämäärätiedot puuttuvat";
     }
+    /* TODO jos ehditään
+    private async Task TulostaValittuLasku()
+    {
+        if (ValittuLasku == null || ValittuVaraus == null || ValittuAsiakas == null || ValittuMokki == null)
+        {
+            await ShowAlert("Virhe", "Valitse ensin lasku.");
+            return;
+        }
+
+        // 
+        // TÄSSÄ HAETAAN VALITUT PALVELUT
+        // 
+        // 
+        List<Palvelu> valitutPalvelut = new();
+
+        _laskutusService.LuoLaskuPdf(ValittuLasku, ValittuVaraus, ValittuAsiakas, ValittuMokki, valitutPalvelut);
+    } 
+    private async Task LahetaValittuLaskuEmaililla()
+    {
+        if (ValittuLasku == null || ValittuVaraus == null || ValittuAsiakas == null || ValittuMokki == null)
+        {
+            await ShowAlert("Virhe", "Valitse ensin lasku.");
+            return;
+        }
+
+        // Tähän pitäisi hakea valitut palvelut.
+        List<Palvelu> valitutPalvelut = new();
+
+        _laskutusService.LuoJaLahetaEmailLasku(ValittuLasku, ValittuVaraus, ValittuAsiakas, ValittuMokki, valitutPalvelut);
+    }
+    */
+
     // =========================================
     // ========== Tietokantaoperaatiot ========= Kommunikoi databaseservicen kanssa, välittää käyttäjän syötteet
     // ========================================= Luo uusia lasku olioita
-
     private async Task SaveLasku()
     {
         if (!CanSave)
@@ -378,7 +506,11 @@ public class LaskuViewModel : INotifyPropertyChanged
         onChanged?.Invoke();
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-
+    public Asiakas? HaeAsiakas(uint varausId)
+    {
+        var varaus = Varaukset.FirstOrDefault(v => v.varaus_id == varausId);
+        return Asiakkaat.FirstOrDefault(a => a.asiakas_id == varaus?.asiakas_id);
+    }
     private void SetValidatedProperty<T>(ref T storage, T value, string propertyName)
     {
         if (!EqualityComparer<T>.Default.Equals(storage, value))
@@ -388,6 +520,5 @@ public class LaskuViewModel : INotifyPropertyChanged
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanSave)));
         }
     }
-
     public event PropertyChangedEventHandler PropertyChanged;
 }

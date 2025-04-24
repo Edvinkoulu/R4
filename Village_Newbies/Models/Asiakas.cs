@@ -8,6 +8,7 @@ public class Asiakas
     public string lahiosoite { get; set; }
     public string email { get; set; }
     public string puhelinnro { get; set; }
+    public string kokoNimi => $"{sukunimi} {etunimi}";
 
     public Asiakas() { }
     public Asiakas(string etunimi, string sukunimi, string lahiosoite, string email, string puhelinnro, string postinro)

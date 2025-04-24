@@ -18,6 +18,10 @@ public partial class MainPage : ContentPage
     {
         await Navigation.PushAsync(new HallintaPage());
     }
+	private async void Laskutus(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new LaskutusPage());
+    }
 
 	private async void OnDatabaseClicked(object sender, EventArgs e)
 	{
@@ -34,4 +38,3 @@ public partial class MainPage : ContentPage
 		}
 	}
 }
-
