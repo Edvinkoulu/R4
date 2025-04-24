@@ -5,7 +5,6 @@ using Village_Newbies.Models;
 using DatabaseConnection;
 using MySqlConnector;
 using System.Data;
-using System.Diagnostics;
 
 public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 {
@@ -26,7 +25,12 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
         var data = await HaeData("SELECT lasku_id, varaus_id, summa, alv, maksettu FROM lasku");
         return LuoLaskuLista(data);
     }
-
+    public async Task<Asiakas> HaeAsiakas(uint id)
+    {
+        var sql = "SELECT * FROM asiakas WHERE asiakas_id = @asiakasId";
+        var data = await HaeData(sql, ("@asiakasId", id));
+        return data.Rows.Count > 0 ? LuoAsiakasOlio(data.Rows[0]) : null;
+    }
     public async Task<List<Lasku>> HaeSuodatetutLaskut(
         int? alueId = null, int? mokkiId = null, int? asiakasId = null,
         DateTime? varausAlku = null, DateTime? varausLoppu = null,
@@ -115,7 +119,6 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
         }
         return varaukset;
     }
-
     public async Task<List<Asiakas>> HaeKaikkiAsiakkaat()
     {
         var data = await HaeData("SELECT * FROM asiakas");
@@ -147,7 +150,6 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 
         return new Lasku(laskuId, varausId, summa, alv, maksettu);
     }
-
     private Asiakas LuoAsiakasOlio(DataRow row)
     {
         uint id = row["asiakas_id"] is int i ? (uint)i : Convert.ToUInt32(row["asiakas_id"]);
@@ -161,7 +163,6 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
             row["postinro"]?.ToString()
         );
     }
-
     // ==================== OVERRIDET =======================
 
     public override async Task<DataTable> HaeData(string sql, params (string, object)[] parameters)
