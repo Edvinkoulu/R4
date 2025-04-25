@@ -5,54 +5,23 @@
              x:Class="Village_Newbies.HallintaPages.HallintaPagePalvelu"
              Title="Lisää palvelu">
 
-    <ContentPage.BindingContext>
-        <viewmodels:PalveluViewModel />
-    </ContentPage.BindingContext>
-
     <ScrollView>
-        <StackLayout Padding="20" Spacing="20">
-
-       <VerticalStackLayout Padding="30"
-                                 HorizontalOptions="Center">
-                <Label Text="Palveluiden Hallinta"
-                       FontSize="24"
-                       HorizontalOptions="Center"/>
+        
+        <StackLayout Padding="20" Spacing="10">
+            <VerticalStackLayout Padding="30" HorizontalOptions="Center">
+                <Label Text="Palveluiden Hallinta" FontSize="24"/>
             </VerticalStackLayout>
 
-            <!-- Lomakekentät -->
-            <Entry Placeholder="Palvelun nimi"
-                   Text="{Binding NewPalvelu.Nimi}" />
+            <!-- Lista nykyisistä palveluista -->
+            <HorizontalStackLayout>
+                <Label Text="{Binding AlueList.Count}" />
+                <Label Text="Nykyiset palvelut" FontSize="20" Margin="0,20,20,0" HorizontalOptions="Start"/>
+                <Entry Placeholder="Hae palveluita" Text="{Binding Hakusana}" FontSize="20" Margin="0,20,0,0" />
+                <Button Text="Hae" Command="{Binding SearchPalvelutCommand}" FontSize="20" Margin="10,20,0,0" />
+                
+            </HorizontalStackLayout>
 
-            <Entry Placeholder="Palvelun kuvaus"
-                   Text="{Binding NewPalvelu.Kuvaus}" />
-
-            <Entry Placeholder="Hinta"
-                   Keyboard="Numeric"
-                   Text="{Binding NewPalvelu.Hinta}" />
-
-            <Entry Placeholder="ALV (%)"
-                   Keyboard="Numeric"
-                   Text="{Binding NewPalvelu.Alv}" />
-
-            <Picker Title="Valitse alue"
-                    ItemsSource="{Binding AlueList}"
-                    SelectedItem="{Binding SelectedAlue}" />
-
-            <!-- Lisää tai päivitä -napit -->
-            <Button Text="Tallenna"
-                    Command="{Binding AddPalveluCommand}"
-                    IsVisible="{Binding IsEditing2}" />
-
-            <Button Text="Päivitä"
-                    Command="{Binding ConfirmUpdatePalveluCommand}"
-                    IsVisible="{Binding IsEditing}" />
-
-            <!-- Lista olemassa olevista palveluista -->
-            <Label Text="Nykyiset palvelut"
-                   FontSize="20"
-                   Margin="0,20,0,0" />
-
-            <CollectionView ItemsSource="{Binding Palvelut}">
+            <CollectionView ItemsSource="{Binding Palvelut}" >
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Frame Margin="5" Padding="10" BorderColor="LightGray">
@@ -76,6 +45,44 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
+            <!-- Lomakekentät -->
+            <Entry Placeholder="Palvelun nimi"
+                   Text="{Binding UusiPalvelu.Nimi}" />
+
+            <Entry Placeholder="Palvelun kuvaus"
+                   Text="{Binding UusiPalvelu.Kuvaus}" />
+
+            <Entry Placeholder="Hinta"
+                   Keyboard="Numeric"
+                   Text="{Binding UusiPalvelu.Hinta}" />
+
+            <Entry Placeholder="ALV (%)"
+                   Keyboard="Numeric"
+                   Text="{Binding UusiPalvelu.Alv}" />
+
+            <!--ALUEPICKER!!!!!!!-->
+            <Picker x:Name="AluePicker"
+                    Title="Valitse alue"
+                    SelectedItem="{Binding SelectedAlue}"
+                    ItemsSource="{Binding AlueList}">
+                <Picker.ItemDisplayBinding>
+                    <Binding Path="alue_nimi"/>
+                </Picker.ItemDisplayBinding>
+            </Picker>
+
+            <HorizontalStackLayout>
+            <!-- Lisää tai päivitä -napit -->
+            <Button Text="Lisää palvelu"
+                    Command="{Binding AddPalveluCommand}"
+                    IsVisible="{Binding IsAdding}" 
+                    FontSize="20" Margin="10,20,0,0" />
+
+            <Button Text="Tallenna muokkaus"
+                    Command="{Binding UpdatePalveluCommand}"
+                    IsVisible="{Binding IsEditing}" 
+                    FontSize="20" Margin="10,20,0,0" />
+            <Button Text="Tyhjennä lomake" Command="{Binding ClearFormCommand}" FontSize="20" Margin="10,20,0,0" />
+            </HorizontalStackLayout>
         </StackLayout>
     </ScrollView>
 </ContentPage>

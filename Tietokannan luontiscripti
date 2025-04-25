@@ -54,7 +54,7 @@ COLLATE = utf8mb4_bin;
 DROP TABLE IF EXISTS `vn`.`asiakas` ;
 
 CREATE TABLE IF NOT EXISTS `vn`.`asiakas` (
-  `asiakas_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `asiakas_id` INT UNSIGNED NOT NULL AUTO_INCREMENT, --AUTO_INCREMENT LISÄTTY (tärkeä) -Edvin
   `postinro` CHAR(5) NOT NULL,
   `etunimi` VARCHAR(20) NULL DEFAULT NULL,
   `sukunimi` VARCHAR(40) NULL DEFAULT NULL,
@@ -166,7 +166,7 @@ COLLATE = utf8mb4_bin;
 DROP TABLE IF EXISTS `vn`.`palvelu` ;
 
 CREATE TABLE IF NOT EXISTS `vn`.`palvelu` (
-  `palvelu_id` INT UNSIGNED NOT NULL,
+  `palvelu_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `alue_id` INT UNSIGNED NOT NULL,
   `nimi` VARCHAR(40) NULL DEFAULT NULL,
   `kuvaus` VARCHAR(255) NULL DEFAULT NULL,
