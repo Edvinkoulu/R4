@@ -18,7 +18,7 @@ public interface ILaskuDatabaseService
     Task Poista(uint id);
     Task<Varaus> HaeVaraus(uint id);
     Task<MokkiUint> HaeMokki(uint id);
-    Task<Asiakas> HaeAsiakas(uint id);
+    Task<Asiakas?> HaeAsiakas(uint id);
     Task<List<Varaus>> HaeKaikkiVaraukset();
     Task<List<Asiakas>> HaeKaikkiAsiakkaat();
 }

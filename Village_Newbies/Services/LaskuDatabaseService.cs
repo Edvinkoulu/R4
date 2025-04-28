@@ -117,7 +117,7 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
         var data = await HaeData(sql, ("@mokkiId", id));
         return data.Rows.Count > 0 ? LuoMokkiOlio(data.Rows[0]) : null;
     }
-    public async Task<Asiakas> HaeAsiakas(uint id)
+    public async Task<Asiakas?> HaeAsiakas(uint id)
     {
         var sql = "SELECT * FROM asiakas WHERE asiakas_id = @asiakasId";
         var data = await HaeData(sql, ("@asiakasId", id));
