@@ -1,0 +1,51 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:Village_Newbies.ViewModels"
+             x:Class="Village_Newbies.RaportointiPage"
+             Title="Raportointi">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+
+            <Label Text="Valitse raportti" FontAttributes="Bold"/>
+            <Picker ItemsSource="{Binding RaporttiTyypit}" 
+                    SelectedItem="{Binding SelectedRaporttiTyyppi}" />
+
+            <Label Text="Valitse alue" FontAttributes="Bold"/>
+            <Picker 
+                    SelectedItem="{Binding SelectedAlue}"
+                    ItemsSource="{Binding Alueet}">
+                <Picker.ItemDisplayBinding>
+                    <Binding Path="alue_nimi"/>
+                </Picker.ItemDisplayBinding>
+            </Picker>
+
+            <Label Text="Valitse ajanjakso" FontAttributes="Bold"/>
+            <StackLayout Orientation="Horizontal" Spacing="10">
+                <DatePicker Date="{Binding ValittuAlkuPvm}" />
+                <Label Text=" - " VerticalOptions="Center" />
+                <DatePicker Date="{Binding ValittuLoppuPvm}" />
+            </StackLayout>
+
+            <Button Text="Näytä raportti" 
+                    Command="{Binding LoadRaporttiCommand}" />
+
+            <CollectionView ItemsSource="{Binding Raportti}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame BorderColor="LightGray" Padding="10" CornerRadius="10" Margin="5">
+                            <StackLayout>
+                                <Label Text="{Binding PalveluNimi}" FontAttributes="Bold" FontSize="Medium"/>
+                                <Label Text="{Binding PalveluKuvaus, StringFormat='PalveluKuvaus: {0}'}" />
+                                <Label Text="{Binding PalveluHinta, StringFormat='Palveluhinta: {0:C}'}" />
+                                 <Label Text="{Binding VarattuAlkuPvm, StringFormat='VarattuAlkuPvm: {0:C}'}" />
+                                  <Label Text="{Binding VarattuLoppuPvm, StringFormat='VarattuLoppuPvm: {0:C}'}" />
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

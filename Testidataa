@@ -23,7 +23,9 @@ INSERT INTO vn.mokki (alue_id, postinro, mokkinimi, katuosoite, hinta, kuvaus, h
 -- Test data for 'varaus' table
 INSERT INTO vn.varaus (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm) VALUES
 (1, 1, NOW(), NOW(), '2025-06-01', '2025-06-07'),
-(2, 2, NOW(), NOW(), '2025-07-15', '2025-07-22');
+(2, 2, NOW(), NOW(), '2025-07-15', '2025-07-22'),
+(1, 2, NOW(), NOW(), '2025-06-15', '2025-06-20'),
+(2, 1, NOW(), NOW(), '2025-08-01', '2025-08-07');
 
 -- Test data for 'lasku' table
 INSERT INTO vn.lasku (lasku_id, varaus_id, summa, alv, maksettu) VALUES
@@ -31,11 +33,14 @@ INSERT INTO vn.lasku (lasku_id, varaus_id, summa, alv, maksettu) VALUES
 (2, 2, 800.00, 24.00, 1);
 
 -- Test data for 'palvelu' table
-INSERT INTO vn.palvelu (palvelu_id, alue_id, nimi, kuvaus, hinta, alv) VALUES
-(1, 1, 'Hiihtolippu', 'Päivälippu ladulle', 25.00, 10.00),
-(2, 2, 'Saunavuoro', 'Yksityinen saunavuoro', 35.00, 10.00);
+INSERT INTO vn.palvelu (alue_id, nimi, kuvaus, hinta, alv) VALUES
+(1, 'Hiihtolippu', 'Päivälippu ladulle', 25.00, 10.00),
+(1, 'Saunavuoro', 'Yksityinen saunavuoro', 35.00, 10.00),
+(2, 'Veneen vuokraus', 'Veneen vuokraus järven rannalla', 50.00, 10.00);
 
 -- Test data for 'varauksen_palvelut' table
 INSERT INTO vn.varauksen_palvelut (varaus_id, palvelu_id, lkm) VALUES
-(1, 1, 2),
-(2, 2, 1);
+(1, 1, 2),  -- Asiakas 1 on varannut 2 hiihtolippua
+(1, 2, 1),  -- Asiakas 1 on varannut 1 saunavuoron
+(2, 2, 1),  -- Asiakas 2 on varannut 1 saunavuoron
+(2, 3, 1);  -- Asiakas 2 on varannut 1 veneen vuokrauksen

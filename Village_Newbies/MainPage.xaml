@@ -29,6 +29,8 @@
             
             <Button Text="Go to hallinta"
                 Clicked="Hallinta" />
+            <Button Text="Raportointi"
+                Clicked="Raportointi"/>
 
             <!-- Yhteystesti nappi -->
             <Button

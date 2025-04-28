@@ -119,6 +119,42 @@ namespace Village_Newbies.Services
             List<Alue> alueet = await aluePalvelu.HaeKaikki();
             return alueet;
         }
+public async Task<IEnumerable<PalveluRaportti>> GetOstetutLisapalvelutRaportti(DateTime alkuPvm, DateTime loppuPvm, List<int> alueet)
+{
+    using var conn = _databaseConnector._getConnection();
+    await conn.OpenAsync();
+
+    // SQL-kysely palveluiden hakemiseksi
+    string query = @"
+        SELECT 
+            p.nimi AS PalveluNimi,
+            p.kuvaus AS PalveluKuvaus,
+            p.hinta AS PalveluHinta,
+            v.varattu_alkupvm AS VarattuAlkuPvm,
+            v.varattu_loppupvm AS VarattuLoppuPvm
+        FROM 
+            varauksen_palvelut vp
+        JOIN 
+            varaus v ON vp.varaus_id = v.varaus_id
+        JOIN 
+            palvelu p ON vp.palvelu_id = p.palvelu_id
+        WHERE 
+            v.varattu_alkupvm BETWEEN @AlkuPvm AND @LoppuPvm
+            AND p.alue_id IN @Alueet
+    ";
+
+    var parameters = new 
+    {
+        AlkuPvm = alkuPvm,
+        LoppuPvm = loppuPvm,
+        Alueet = alueet
+    };
+
+    // Suorita kysely ja palauta tulokset
+    return await conn.QueryAsync<PalveluRaportti>(query, parameters);
+}
 
     }
+
+    
 }

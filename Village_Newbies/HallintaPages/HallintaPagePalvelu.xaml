@@ -14,7 +14,6 @@
 
             <!-- Lista nykyisistä palveluista -->
             <HorizontalStackLayout>
-                <Label Text="{Binding AlueList.Count}" />
                 <Label Text="Nykyiset palvelut" FontSize="20" Margin="0,20,20,0" HorizontalOptions="Start"/>
                 <Entry Placeholder="Hae palveluita" Text="{Binding Hakusana}" FontSize="20" Margin="0,20,0,0" />
                 <Button Text="Hae" Command="{Binding SearchPalvelutCommand}" FontSize="20" Margin="10,20,0,0" />
