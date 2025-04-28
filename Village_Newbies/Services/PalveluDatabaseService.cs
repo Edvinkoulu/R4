@@ -1,6 +1,8 @@
 using DatabaseConnection;  // Importoi DatabaseConnection namespace
 using Village_Newbies.Models;
 using Dapper;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Village_Newbies.Services
 {
@@ -8,29 +10,32 @@ namespace Village_Newbies.Services
     {
         private readonly DatabaseConnector _databaseConnector;
 
+        // Default-konstruktori
         public PalveluDatabaseService()
         {
             _databaseConnector = new DatabaseConnector();
         }
 
+        // Konstruktori, jossa voidaan käyttää mukautettua DatabaseConnectoria
         public PalveluDatabaseService(DatabaseConnector databaseConnector)
         {
             _databaseConnector = databaseConnector;
         }
 
         // Create: Lisää uusi palvelu
-        public async Task<int> CreatePalveluAsync(Palvelu palvelu)
-        {
-            using (var conn = _databaseConnector._getConnection())
-            {
-                await conn.OpenAsync();
+       public async Task<int> CreatePalveluAsync(Palvelu palvelu)
+{
+    using (var conn = _databaseConnector._getConnection())
+    {
+        await conn.OpenAsync();
 
-                string query = @"IINSERT INTO palvelu (alue_id, nimi, kuvaus, hinta, alv)
-                VALUES (@AlueId, @Nimi, @Kuvaus, @Hinta, @Alv)";
+        string query = @"INSERT INTO palvelu (alue_id, nimi, kuvaus, hinta, alv)
+                         VALUES (@AlueId, @Nimi, @Kuvaus, @Hinta, @Alv)";
 
-                return await conn.ExecuteAsync(query, palvelu);
-            }
-        }
+        // Parametrin nimeä vastaa luokan kenttä.
+        return await conn.ExecuteAsync(query, new { AlueId = palvelu.alue_id, Nimi = palvelu.Nimi, Kuvaus = palvelu.Kuvaus, Hinta = palvelu.Hinta, Alv = palvelu.Alv });
+    }
+}
 
         // Read: Hae kaikki palvelut
         public async Task<IEnumerable<Palvelu>> GetAllPalvelutAsync()
@@ -57,21 +62,32 @@ namespace Village_Newbies.Services
         }
 
         // Update: Päivitä olemassa oleva palvelu
-        public async Task<int> UpdatePalveluAsync(Palvelu palvelu)
+      public async Task<int> UpdatePalveluAsync(Palvelu palvelu)
+{
+    using (var conn = _databaseConnector._getConnection())
+    {
+        await conn.OpenAsync();
+
+        // Päivitetään palvelu tietokannassa
+        string query = @"UPDATE palvelu
+                         SET alue_id = @AlueId, nimi = @Nimi, kuvaus = @Kuvaus, 
+                             hinta = @Hinta, alv = @Alv
+                         WHERE palvelu_id = @PalveluId";
+
+        // Varmistetaan, että kaikki kentät ovat mukana
+        var parameters = new 
         {
-            using (var conn = _databaseConnector._getConnection())
-            {
-                await conn.OpenAsync();
+            AlueId = palvelu.alue_id,
+            Nimi = palvelu.Nimi,
+            Kuvaus = palvelu.Kuvaus,
+            Hinta = palvelu.Hinta,
+            Alv = palvelu.Alv,
+            PalveluId = palvelu.palvelu_id
+        };
 
-                string query = @"UPDATE palvelu
-                                 SET alue_id = @AlueId, nimi = @Nimi, kuvaus = @Kuvaus,
-                                     hinta = @Hinta, alv = @Alv
-                                 WHERE palvelu_id = @PalveluId";
-
-                return await conn.ExecuteAsync(query, palvelu);
-            }
-        }
-
+        return await conn.ExecuteAsync(query, parameters);
+    }
+}
         // Delete: Poista palvelu ID:n perusteella
         public async Task<int> DeletePalveluAsync(int palveluId)
         {
@@ -83,16 +99,26 @@ namespace Village_Newbies.Services
                 return await conn.ExecuteAsync(query, new { PalveluId = palveluId });
             }
         }
-         // Read: Hae kaikki alueet
-        public async Task<IEnumerable<Alue>> GetAllAlueAsync()
+
+        // Delete: Poista viittaukset varauksen_palvelut-taulusta, jossa palvelu_id on viitattu
+        public async Task DeleteViittauksetPalveluista(int palveluId)
         {
             using (var conn = _databaseConnector._getConnection())
             {
                 await conn.OpenAsync();
 
-                string query = "SELECT * FROM alue";  // Assuming there is a table named 'alue'
-                return await conn.QueryAsync<Alue>(query);
+                string query = "DELETE FROM varauksen_palvelut WHERE palvelu_id = @PalveluId";
+                await conn.ExecuteAsync(query, new { PalveluId = palveluId });
             }
         }
+
+        // Read: Hae kaikki alueet
+        public async Task<List<Alue>> GetAllAlueAsync()
+        {
+            AlueDatabaseService aluePalvelu = new AlueDatabaseService(_databaseConnector);
+            List<Alue> alueet = await aluePalvelu.HaeKaikki();
+            return alueet;
+        }
+
     }
 }
