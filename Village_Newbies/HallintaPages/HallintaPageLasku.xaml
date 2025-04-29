@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Village_Newbies.HallintaPages.HallintaPageLasku"
              xmlns:vm="clr-namespace:Village_Newbies.ViewModels"
+             xmlns:behaviors="clr-namespace:Village_Newbies.Behaviors"
              BackgroundColor="{DynamicResource PageBackgroundColor}"
              Title="Laskujen Hallinta">
 
@@ -78,13 +79,21 @@
                                    <Label Text="Majoitus (€):"/>
                                    <Entry Placeholder="Syötä summa"
                                           Text="{Binding UusiSumma}"
-                                          Keyboard="Numeric"/>
+                                          Keyboard="Numeric">
+                                          <Entry.Behaviors>
+                                                 <behaviors:NumericValidationBehavior IsDouble="True"/>
+                                          </Entry.Behaviors>
+                                   </Entry>
                                    <Label Text="{Binding SummaVirhe}"
                                           TextColor="Red"/>
                                    <Label Text="ALV (%):"/>
                                    <Entry Placeholder="Syötä ALV"
                                           Text="{Binding UusiAlv}"
-                                          Keyboard="Numeric"/>
+                                          Keyboard="Numeric">
+                                          <Entry.Behaviors>
+                                                 <behaviors:NumericValidationBehavior IsDouble="True"/>
+                                          </Entry.Behaviors>
+                                   </Entry>
                                    <Label Text="{Binding AlvVirhe}"
                                           TextColor="Red"/>
                                    <HorizontalStackLayout>

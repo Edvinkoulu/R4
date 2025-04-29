@@ -83,6 +83,12 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
     // =============== READ UPDATE DELETE ===============
     public async Task Lisaa(Lasku lasku)
     {
+        try {await TarkistaLasku(lasku);}
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlert("Virhe laskua lisättäessä", ex.Message, "OK");
+            return; // Ei viedä huonoa dataa tietokantaan.
+        }
         var sql = "INSERT INTO lasku (varaus_id, summa, alv, maksettu) VALUES (@varausId, @summa, @alv, @maksettu)";
         await SuoritaKomento(sql,
             ("@varausId", lasku.varaus_id),
@@ -92,6 +98,12 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
     }
     public async Task Muokkaa(Lasku lasku)
     {
+        try {await TarkistaLasku(lasku);}
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlert("Virhe laskua muokattaessa", ex.Message, "OK");
+            return; // Ei viedä huonoa dataa tietokantaan.
+        }
         var sql = "UPDATE lasku SET varaus_id = @varausId, summa = @summa, alv = @alv, maksettu = @maksettu WHERE lasku_id = @laskuId";
         await SuoritaKomento(sql,
             ("@laskuId", lasku.lasku_id),
@@ -103,6 +115,11 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
     public async Task Poista(uint id)
     {
         await SuoritaKomento("DELETE FROM lasku WHERE lasku_id = @laskuId", ("@laskuId", id));
+    }
+    public async Task TarkistaLasku(Lasku lasku)
+    { 
+        SyoteValidointi.TarkistaDouble(lasku.alv, 0, 100);
+        SyoteValidointi.TarkistaDouble(lasku.summa, 0, double.MaxValue);
     }
     // ==================== MUUT HAKUTOIMINNOT =======================
     public async Task<Varaus> HaeVaraus(uint id)

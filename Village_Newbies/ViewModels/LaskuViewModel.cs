@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
+using System.Globalization;
 using System.Linq;
 using System;
 
@@ -161,22 +162,22 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
     public int UusiVarausId
     {
         get => _uusiVarausId;
-        set => SetProperty(ref _uusiVarausId, value);
+        set => SetProperty(ref _uusiVarausId, value, () => ValidateVarausId());
     }
     public double UusiSumma
     {
         get => _uusiSumma;
-        set => SetValidatedProperty(ref _uusiSumma, value, nameof(UusiSumma));
+        set => SetProperty(ref _uusiSumma, value, () => ValidateDouble(_uusiSumma.ToString(CultureInfo.InvariantCulture), nameof(UusiSumma)));
     }
     public double UusiAlv
     {
         get => _uusiAlv;
-        set => SetValidatedProperty(ref _uusiAlv, value, nameof(UusiAlv));
+        set => SetProperty(ref _uusiAlv, value, () => ValidateDouble(_uusiAlv.ToString(CultureInfo.InvariantCulture), nameof(UusiAlv)));
     }
     public bool UusiMaksettu
     {
         get => _uusiMaksettu;
-        set => SetValidatedProperty(ref _uusiMaksettu, value, nameof(UusiMaksettu));
+        set => SetProperty(ref _uusiMaksettu, value, () => OnkoMuutoksia = true);
     }
     private int _uusiVarausId;
     private double _uusiSumma;
@@ -223,7 +224,7 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
     // =========================================
     // ========= Propertyt: Validointi========== Jos käyttäjä tekee virheellisiä syötteitä, nämä sitten tekevät virheilmoituksen käyttöliittymään
     // =========================================
-    public bool CanSave => ValittuVaraus != null && ValidateSumma() && ValidateAlv() && OnkoMuutoksia;
+    public bool CanSave => ValittuVaraus != null && string.IsNullOrEmpty(SummaVirhe) && string.IsNullOrEmpty(AlvVirhe) && string.IsNullOrEmpty(VarausIdVirhe) && OnkoMuutoksia;
     public bool IsNotEditing => !IsEditing;
     public string VarausIdVirhe
     {
@@ -301,11 +302,6 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         {
             await ShowAlert(errorMessage, ex.Message);
         }
-    }
-    private async Task Load<T>(ObservableCollection<T> collection, Func<Task<List<T>>> fetch)
-    {
-        collection.Clear();
-        (await fetch()).ForEach(collection.Add);
     }
     private async Task HaeMokit()
     {
@@ -399,20 +395,6 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         Laskut.Clear();
         await LoadData();
     }
-    private async Task UpdateCollectionAsync<T>(ObservableCollection<T> collection, Func<Task<List<T>>> fetch)
-    {
-        try
-        {
-            collection.Clear();
-            var items = await fetch();
-            foreach (var item in items)
-                collection.Add(item);
-        }
-        catch (Exception ex)
-        {
-            await ShowAlert("Virhe ladattaessa kokoelmaa", ex.Message);
-        }
-    }
     private async Task<Tuple<Varaus, Asiakas, Mokki>> HaeLaskunTiedot()
     {
         Asiakas asiakas = null;
@@ -473,18 +455,16 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
     {
         if (!CanSave)
         {
-            ValidateAll();
             await ShowAlert("Virhe", "Tarkista kentät.");
             return;
         }
-
         try
         {
-            var lasku = new Lasku(ValittuLasku?.lasku_id ?? 0, ValittuVaraus.varaus_id, UusiSumma, UusiAlv, UusiMaksettu);
+            var lasku = new Lasku(ValittuLasku?.lasku_id ?? 0, (uint)UusiVarausId, UusiSumma, UusiAlv, UusiMaksettu);
             if (IsEditing) await _laskuDb.Muokkaa(lasku);
             else await _laskuDb.Lisaa(lasku);
+            OnkoMuutoksia = false;
             ShowAlert("Tallennus onnistui", "");
-            OnkoMuutoksia = false; // Nollaa tallennusnapis muutoksien seurannan.
             await TyhjennaValinnat();
         }
         catch (Exception ex)
@@ -510,26 +490,42 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
     // =========================================
     // =========== Validointi ==================
     // =========================================
-    private void ValidateAll()
-    {
-        _ = ValidateVarausId();
-        _ = ValidateSumma();
-        _ = ValidateAlv();
-    }
     private bool ValidateVarausId()
     {
+        if (!int.TryParse(UusiVarausId.ToString(), out _))
+        {
+            VarausIdVirhe = "Varaus ID on virheellinen.";
+            return false;
+        }
         try { SyoteValidointi.TarkistaInt(UusiVarausId, 1, int.MaxValue); VarausIdVirhe = ""; return true; }
         catch (Exception ex) { VarausIdVirhe = ex.Message; return false; }
     }
-    private bool ValidateSumma()
+    private bool ValidateDouble(string value, string propertyName)
     {
-        try { SyoteValidointi.TarkistaDouble(UusiSumma, 0, double.MaxValue); SummaVirhe = ""; return true; }
-        catch (Exception ex) { SummaVirhe = ex.Message; return false; }
-    }
-    private bool ValidateAlv()
-    {
-        try { SyoteValidointi.TarkistaDouble(UusiAlv, 0, 100); AlvVirhe = ""; return true; }
-        catch (Exception ex) { AlvVirhe = ex.Message; return false; }
+        if (string.IsNullOrEmpty(value))
+        {
+            if (propertyName == nameof(UusiSumma)) SummaVirhe = "Syötä summa.";
+            else if (propertyName == nameof(UusiAlv)) AlvVirhe = "Syötä ALV.";
+            return false;
+        }
+        if (!double.TryParse(value, NumberStyles.AllowDecimalPoint | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double doubleValue))
+        {
+            string virheviesti = "Syötä kelvollinen desimaaliluku.";
+            if (propertyName == nameof(UusiSumma)) SummaVirhe = virheviesti;
+            else if (propertyName == nameof(UusiAlv)) AlvVirhe = virheviesti;
+            return false;
+        }
+        if (propertyName == nameof(UusiSumma))
+        {
+            try { SyoteValidointi.TarkistaDouble(doubleValue, 0, double.MaxValue); SummaVirhe = ""; return true; }
+            catch (Exception ex) { SummaVirhe = ex.Message; return false; }
+        }
+        else if (propertyName == nameof(UusiAlv))
+        {
+            try { SyoteValidointi.TarkistaDouble(doubleValue, 0, 100); AlvVirhe = ""; return true; }
+            catch (Exception ex) { AlvVirhe = ex.Message; return false; }
+        }
+        return true;
     }
     // =========================================
     // ======== Apu- ja ilmoitusmetodit ========
@@ -544,29 +540,15 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         storage = value;
         onChanged?.Invoke();
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        // Asetetaan OnkoMuutoksia trueksi, jos muokataan jotain syötekenttää
+        // Asetetaan OnkoMuutoksia trueksi, jos muokataan jotain syötekenttää (paitsi validointivirheet)
         if (new string[] { nameof(UusiVarausId), nameof(UusiSumma), nameof(UusiAlv), nameof(UusiMaksettu) }.Contains(propertyName))
         {
             OnkoMuutoksia = true;
         }
         // Päivitetään CanSave
-        if (new string[] { nameof(UusiVarausId), nameof(UusiSumma), nameof(UusiAlv), nameof(ValittuVaraus), nameof(OnkoMuutoksia) }.Contains(propertyName))
+        if (new string[] { nameof(UusiVarausId), nameof(UusiSumma), nameof(UusiAlv), nameof(ValittuVaraus), nameof(OnkoMuutoksia), nameof(SummaVirhe), nameof(AlvVirhe), nameof(VarausIdVirhe) }.Contains(propertyName))
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanSave)));
-        }
-    }
-    private void SetValidatedProperty<T>(ref T storage, T value, string propertyName)
-    {
-        if (!EqualityComparer<T>.Default.Equals(storage, value))
-        {
-            storage = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            // Asetetaan OnkoMuutoksia trueksi, jos muokataan jotain syötekenttää
-            if (new string[] { nameof(UusiSumma), nameof(UusiAlv), nameof(UusiMaksettu) }.Contains(propertyName))
-            {
-                OnkoMuutoksia = true;
-            }
-            // CanSave päivitetään SetProperty-metodissa, koska se riippuu OnkoMuutoksia-ominaisuudesta
         }
     }
 }

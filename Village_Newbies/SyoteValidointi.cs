@@ -22,6 +22,10 @@ public static class SyoteValidointi
     }
     public static double TarkistaDouble(double luku, double min, double max)
     {
+        if (luku.GetType() != typeof(double))
+        {
+            throw new ArgumentException($"Syötetyn arvon ({luku}) pitää olla desimaaliluku.");
+        }
         if (luku > double.MaxValue || luku < double.MinValue)
         {
             throw new ArgumentException($"Luku ei voi olla suurempi kuin {double.MaxValue} tai pienempi kuin {double.MinValue}");
@@ -34,6 +38,10 @@ public static class SyoteValidointi
     }
     public static int TarkistaInt(int luku, int min, int max)
     {
+        if (luku.GetType() != typeof(int))
+        {
+            throw new ArgumentException($"Syötetyn arvon ({luku}) pitää olla kokonaisluku.");
+        }
         if (luku > int.MaxValue || luku < int.MinValue)
         {
             throw new ArgumentException($"Luku ei voi olla suurempi kuin {int.MaxValue} tai pienempi kuin {int.MinValue}");
