@@ -18,7 +18,12 @@ public partial class MainPage : ContentPage
     {
         await Navigation.PushAsync(new HallintaPage());
     }
-
+	private async void Raportointi(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new RaportointiPage());
+    }
+	
+	
 	private async void OnDatabaseClicked(object sender, EventArgs e)
 	{
 		DatabaseConnector dbc = new DatabaseConnector();
@@ -34,4 +39,3 @@ public partial class MainPage : ContentPage
 		}
 	}
 }
-

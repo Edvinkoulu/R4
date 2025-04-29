@@ -14,26 +14,28 @@
                 SemanticProperties.Description="dot net bot in a hovercraft number nine"/>
 
             <Label
-                Text="Hello, World!"
+                Text="Village Newbies"
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level1"/>
 
             <Label
-                Text="Welcome to &#10;.NET Multi-platform App UI"
+                Text="Tervetuloa mökkien varausjärjästelmään"
                 Style="{StaticResource SubHeadline}"
                 SemanticProperties.HeadingLevel="Level2"
                 SemanticProperties.Description="Welcome to dot net Multi platform App U I"/>
 
-            <Button Text="Go to asiakas varaus"
+            <Button Text="Asiakas varaus"
                 Clicked="AsiakasVaraus" />
             
-            <Button Text="Go to hallinta"
+            <Button Text="Hallinta"
                 Clicked="Hallinta" />
+            <Button Text="Raportointi"
+                Clicked="Raportointi"/>
 
             <!-- Yhteystesti nappi -->
             <Button
                 x:Name="DatabaseBtn"
-                Text="Connect to database"
+                Text="Testaa databasen toimivuus"
                 SemanticProperties.Hint="Connects to database"
                 Clicked="OnDatabaseClicked"
                 HorizontalOptions="Fill"/>

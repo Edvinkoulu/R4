@@ -1,25 +1,51 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows.Input;
+using Village_Newbies.Models;
+using Village_Newbies.Services;
+
 namespace Village_Newbies.ViewModels
 {
-    using System.Collections.ObjectModel;
-    using System.Linq;
-    using System.Windows.Input;
-    using Village_Newbies.Models;
-    using Village_Newbies.Services;
-
-    public class PalveluViewModel : BindableObject
+    public class PalveluViewModel : INotifyPropertyChanged
     {
-        private readonly PalveluDatabaseService _palveluDatabaseService;
-        private ObservableCollection<Palvelu> _palvelut;
-        private ObservableCollection<Alue> _alueList;
-        private Palvelu _newPalvelu;
+        private readonly PalveluDatabaseService _databaseService;
 
-        public Palvelu NewPalvelu
+        private ObservableCollection<Palvelu> _palvelut = new();
+        private ObservableCollection<Alue> _alueList = new();
+        private Palvelu? _selectedPalvelu;
+        private Palvelu _uusiPalvelu = new();
+        private Alue? _selectedAlue;
+        private bool _isEditing;
+        private string _hakusana = string.Empty;
+
+        public PalveluViewModel(PalveluDatabaseService dbService)
         {
-            get => _newPalvelu;
+            _databaseService = dbService;
+
+            LoadPalvelutCommand = new Command(async () => await LoadPalvelut());
+            AddPalveluCommand = new Command(async () => await AddPalvelu());
+            UpdatePalveluCommand = new Command(async () => await UpdatePalvelu());
+            DeletePalveluCommand = new Command<Palvelu>(async (palvelu) => await DeletePalvelu(palvelu));
+            LoadPalveluForEditCommand = new Command<Palvelu>((palvelu) => LoadPalveluForEdit(palvelu));
+            SearchPalvelutCommand = new Command(async () => await SearchPalvelut());
+            ClearFormCommand = new Command(ClearForm);
+
+            _ = InitializeAsync();
+        }
+
+        public async Task InitializeAsync()
+        {
+            await LoadPalvelut();
+            await LoadAlueet();
+        }
+
+        public ObservableCollection<Palvelu> Palvelut
+        {
+            get => _palvelut;
             set
             {
-                _newPalvelu = value;
-                OnPropertyChanged();
+                _palvelut = value;
+                OnPropertyChanged(nameof(Palvelut));
             }
         }
 
@@ -29,160 +55,137 @@ namespace Village_Newbies.ViewModels
             set
             {
                 _alueList = value;
-                OnPropertyChanged();
+                OnPropertyChanged(nameof(AlueList));
             }
         }
 
-        public ObservableCollection<Palvelu> Palvelut
+        public Palvelu? SelectedPalvelu
         {
-            get => _palvelut;
+            get => _selectedPalvelu;
             set
             {
-                _palvelut = value;
-                OnPropertyChanged(); // Notify the UI that the property has changed
+                _selectedPalvelu = value;
+                OnPropertyChanged(nameof(SelectedPalvelu));
             }
         }
 
-        private Alue _selectedAlue;
-        public Alue SelectedAlue
+        public Palvelu UusiPalvelu
+        {
+            get => _uusiPalvelu;
+            set
+            {
+                _uusiPalvelu = value;
+                OnPropertyChanged(nameof(UusiPalvelu));
+            }
+        }
+
+        public Alue? SelectedAlue
         {
             get => _selectedAlue;
             set
             {
                 _selectedAlue = value;
-                OnPropertyChanged();
-
-                // Update NewPalvelu's alue_id when user selects a new Alue
                 if (_selectedAlue != null)
                 {
-                    NewPalvelu.alue_id = (int)_selectedAlue.alue_id; // Cast to int
-                    OnPropertyChanged(nameof(NewPalvelu)); // Optional, in case the UI isn't updating
+                    UusiPalvelu.alue_id = (int)_selectedAlue.alue_id;
                 }
+                OnPropertyChanged(nameof(SelectedAlue));
             }
         }
 
-        private Palvelu _selectedPalveluForEdit;
-        public Palvelu SelectedPalveluForEdit
-        {
-            get => _selectedPalveluForEdit;
-            set
-            {
-                _selectedPalveluForEdit = value;
-                OnPropertyChanged();
-            }
-        }
-
-        private bool _isEditing;
-        private bool _isEditing2 = true;
         public bool IsEditing
         {
             get => _isEditing;
             set
             {
                 _isEditing = value;
-                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditing));
+                OnPropertyChanged(nameof(IsAdding));
             }
         }
 
-        public bool IsEditing2
+        public bool IsAdding => !IsEditing;
+
+        public string Hakusana
         {
-            get => _isEditing2;
+            get => _hakusana;
             set
             {
-                _isEditing2 = value;
-                OnPropertyChanged();
+                _hakusana = value;
+                OnPropertyChanged(nameof(Hakusana));
             }
         }
 
+        public ICommand LoadPalvelutCommand { get; }
         public ICommand AddPalveluCommand { get; }
+        public ICommand UpdatePalveluCommand { get; }
         public ICommand DeletePalveluCommand { get; }
         public ICommand LoadPalveluForEditCommand { get; }
-        public ICommand ConfirmUpdatePalveluCommand { get; }
+        public ICommand SearchPalvelutCommand { get; }
+        public ICommand ClearFormCommand { get; }
 
-        public PalveluViewModel()
+        private async Task LoadPalvelut()
         {
-            _palveluDatabaseService = new PalveluDatabaseService(); // Initialize the service
-            NewPalvelu = new Palvelu(); // Create a new instance of Palvelu
-
-            // Define commands
-            AddPalveluCommand = new Command(async () => await AddPalveluAsync());
-            DeletePalveluCommand = new Command<Palvelu>(async (palvelu) => await DeletePalveluAsync(palvelu));
-            LoadPalveluForEditCommand = new Command<Palvelu>((palvelu) => LoadPalveluForEdit(palvelu));
-            ConfirmUpdatePalveluCommand = new Command(async () => await UpdatePalveluAsync());
-            
-            // Load initial data
-            LoadAlueList(); // Get all Alue list
-            LoadPalvelut();   // Get all Palvelu list
+            var lista = await _databaseService.GetAllPalvelutAsync();
+            Palvelut = new ObservableCollection<Palvelu>(lista);
         }
 
-        private async Task LoadAlueList()
+        private async Task LoadAlueet()
         {
-            // Fetch all alue records from the database
-            var alueList = await _palveluDatabaseService.GetAllAlueAsync();
-            AlueList = new ObservableCollection<Alue>(alueList);
+            var alueet = await _databaseService.GetAllAlueAsync();
+            AlueList = new ObservableCollection<Alue>(alueet);
         }
 
-        private async void LoadPalvelut()
+       private async Task AddPalvelu()
+{
+    System.Diagnostics.Debug.WriteLine(
+        $"ID: {UusiPalvelu.palvelu_id}, " +
+        $"Nimi: {UusiPalvelu.Nimi}, " +
+        $"Kuvaus: {UusiPalvelu.Kuvaus}, " +
+        $"AlueId: {UusiPalvelu.alue_id}, " +
+        $"Hinta: {UusiPalvelu.Hinta}, " +
+        $"ALV: {UusiPalvelu.Alv}"
+    );
+
+    if (string.IsNullOrWhiteSpace(UusiPalvelu?.Nimi) || UusiPalvelu.Hinta <= 0 || UusiPalvelu.Alv <= 0)
+    {
+        await Application.Current.MainPage.DisplayAlert("Virhe", "Kaikki kentät täytyy täyttää oikein.", "OK");
+        return;
+    }
+
+    try
+    {
+        // Yritetään luoda uusi palvelu tietokantaan
+        int result = await _databaseService.CreatePalveluAsync(UusiPalvelu);
+
+        // Tarkastetaan, mitä tietokanta palautti
+        System.Diagnostics.Debug.WriteLine($"Tietokannan vastaus: {result}");
+
+        if (result > 0)
         {
-            // Get all Palvelut from the database
-            var palvelut = await _palveluDatabaseService.GetAllPalvelutAsync();
-            // Update the ObservableCollection to reflect the changes
-            Palvelut = new ObservableCollection<Palvelu>(palvelut);
+            await LoadPalvelut();
+            ClearForm();
         }
-
-        private async Task AddPalveluAsync()
+        else
         {
-            if (NewPalvelu == null)
-                return;
-
-            // Validation before adding the service
-            if (string.IsNullOrEmpty(NewPalvelu.Nimi) || NewPalvelu.Hinta <= 0)
-            {
-                // Add some user feedback here (e.g., show an alert)
-                return;
-            }
-
-            // Call the service method to insert the new Palvelu
-            int rowsAffected = await _palveluDatabaseService.CreatePalveluAsync(NewPalvelu);
-
-            // Provide feedback to the user about success or failure
-            if (rowsAffected > 0)
-            {
-                // Successfully added
-                NewPalvelu = new Palvelu(); // Reset the form
-                OnPropertyChanged(nameof(NewPalvelu));
-            }
-            else
-            {
-                // Error handling: show an alert, log, etc.
-            }
+            // Jos vastaus ei ollut odotettu (esim. 0 tai negatiivinen)
+            await Application.Current.MainPage.DisplayAlert("Virhe", "Palvelua ei voitu lisätä.", "OK");
         }
-
-        private async Task DeletePalveluAsync(Palvelu palvelu)
-        {
-            if (palvelu == null) return;
-
-            bool confirm = await Application.Current.MainPage.DisplayAlert(
-                "Confirm Delete",
-                $"Are you sure you want to delete '{palvelu.Nimi}'?",
-                "Yes",
-                "No");
-
-            if (confirm)
-            {
-                await _palveluDatabaseService.DeletePalveluAsync(palvelu.palvelu_id);
-                Palvelut.Remove(palvelu);
-            }
-        }
+    }
+    catch (Exception ex)
+    {
+        // Jos tulee virhe tietokannan käsittelyssä, tulostetaan se Debug-logiin
+        System.Diagnostics.Debug.WriteLine($"Virhe lisäyksessä: {ex.Message}");
+        await Application.Current.MainPage.DisplayAlert("Virhe", $"Tietokantavirhe: {ex.Message}", "OK");
+    }
+}
 
         private void LoadPalveluForEdit(Palvelu palvelu)
         {
             if (palvelu == null) return;
 
-            SelectedPalveluForEdit = palvelu;
-
-            // Copy fields from selected palvelu into NewPalvelu
-            NewPalvelu = new Palvelu
+            SelectedPalvelu = palvelu;
+            UusiPalvelu = new Palvelu
             {
                 palvelu_id = palvelu.palvelu_id,
                 alue_id = palvelu.alue_id,
@@ -193,24 +196,107 @@ namespace Village_Newbies.ViewModels
             };
 
             SelectedAlue = AlueList.FirstOrDefault(a => a.alue_id == palvelu.alue_id);
-
-            IsEditing = true; // This makes the button appear
-            IsEditing2 = false;
+            IsEditing = true;
         }
 
-        private async Task UpdatePalveluAsync()
+       private async Task UpdatePalvelu()
+{
+    System.Diagnostics.Debug.WriteLine(
+        $"ID: {UusiPalvelu.palvelu_id}, " +
+        $"Nimi: {UusiPalvelu.Nimi}, " +
+        $"Kuvaus: {UusiPalvelu.Kuvaus}, " +
+        $"AlueId: {UusiPalvelu.alue_id}, " +
+        $"Hinta: {UusiPalvelu.Hinta}, " +
+        $"ALV: {UusiPalvelu.Alv}"
+    );
+
+    // Tarkistetaan, että ID on asetettu oikein
+    if (UusiPalvelu == null || UusiPalvelu.palvelu_id <= 0)
+    {
+        await Application.Current.MainPage.DisplayAlert("Virhe", "Virheellinen palvelu ID", "OK");
+        return;
+    }
+
+    try
+    {
+        // Yritetään päivittää palvelu tietokantaan
+        int result = await _databaseService.UpdatePalveluAsync(UusiPalvelu);
+
+        if (result > 0)
         {
-            IsEditing = false;
-            IsEditing2 = true;
-            if (NewPalvelu == null || NewPalvelu.palvelu_id <= 0)
+            await LoadPalvelut();
+            ClearForm();
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Virhe", "Palvelun päivittäminen epäonnistui.", "OK");
+        }
+    }
+    catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine($"Virhe muokkauksessa: {ex.Message}");
+        await Application.Current.MainPage.DisplayAlert("Virhe", $"Tietokantavirhe: {ex.Message}", "OK");
+    }
+}
+
+        private async Task DeletePalvelu(Palvelu palvelu)
+        {
+            if (palvelu == null)
                 return;
 
-            await _palveluDatabaseService.UpdatePalveluAsync(NewPalvelu);
-            LoadPalvelut();
+            bool confirm = await Application.Current.MainPage.DisplayAlert(
+                "Vahvista poisto",
+                $"Haluatko varmasti poistaa palvelun '{palvelu.Nimi}'?",
+                "Kyllä", "Peruuta");
 
-            // Clear form if needed
-            NewPalvelu = new Palvelu();
-            SelectedAlue = null;
+            if (confirm)
+            {
+                try
+                {
+                    await _databaseService.DeleteViittauksetPalveluista(palvelu.palvelu_id);
+                    await _databaseService.DeletePalveluAsync(palvelu.palvelu_id);
+                    await LoadPalvelut();
+
+                    await Application.Current.MainPage.DisplayAlert("Poisto onnistui",
+                        $"Palvelu '{palvelu.Nimi}' on poistettu.", "OK");
+                }
+                catch (Exception ex)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Virhe",
+                        $"Poisto epäonnistui: {ex.Message}", "OK");
+                }
+            }
         }
+
+        private async Task SearchPalvelut()
+        {
+            var kaikki = await _databaseService.GetAllPalvelutAsync();
+
+            if (string.IsNullOrWhiteSpace(Hakusana))
+            {
+                Palvelut = new ObservableCollection<Palvelu>(kaikki);
+            }
+            else
+            {
+                var suodatetut = kaikki
+                    .Where(p => p.Nimi.Contains(Hakusana, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                Palvelut = new ObservableCollection<Palvelu>(suodatetut);
+            }
+        }
+
+        private void ClearForm()
+        {
+            UusiPalvelu = new Palvelu();
+            SelectedAlue = null;
+            IsEditing = false;
+            Hakusana = string.Empty;
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

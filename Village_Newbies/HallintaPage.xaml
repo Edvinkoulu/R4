@@ -11,6 +11,7 @@
     <views:HallintaPageLasku Title="Laskut" />
     <views:HallintaPagePalvelu Title="Palvelut" />
     <views:HallintaPageAsiakas Title="Asiakkaat" />
+    <views:HallintaPageMajoitusVaraus Title="Majoitusvarausten hallinta"/>
  
 
 </TabbedPage>

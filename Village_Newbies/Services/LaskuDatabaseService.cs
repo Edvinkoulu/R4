@@ -5,16 +5,14 @@ using Village_Newbies.Models;
 using DatabaseConnection;
 using MySqlConnector;
 using System.Data;
-using System.Diagnostics;
 
 public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 {
+    VarausDatabaseService varausService = new VarausDatabaseService();
     public LaskuDatabaseService() { }
     public LaskuDatabaseService(DatabaseConnector connection) : base(connection) { }
-
     // ===================== HAKU =======================
-
-    public async Task<Lasku> Hae(int id)
+    public async Task<Lasku> Hae(uint id)
     {
         var sql = "SELECT lasku_id, varaus_id, summa, alv, maksettu FROM lasku WHERE lasku_id = @laskuId";
         var data = await HaeData(sql, ("@laskuId", id));
@@ -26,7 +24,6 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
         var data = await HaeData("SELECT lasku_id, varaus_id, summa, alv, maksettu FROM lasku");
         return LuoLaskuLista(data);
     }
-
     public async Task<List<Lasku>> HaeSuodatetutLaskut(
         int? alueId = null, int? mokkiId = null, int? asiakasId = null,
         DateTime? varausAlku = null, DateTime? varausLoppu = null,
@@ -56,11 +53,42 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 
         return LuoLaskuLista(await HaeData(sql, parametrit.ToArray()));
     }
+    public async Task<List<Palvelu>> HaeLaskunPalvelut(Lasku lasku)
+    {
+        uint laskuId = lasku.lasku_id;
+        var sql = @"
+                SELECT p.palvelu_id AS PalveluId,
+                       p.alue_id AS AlueId,
+                       p.nimi AS Nimi,
+                       p.kuvaus AS Kuvaus,
+                       p.hinta AS Hinta,
+                       p.alv AS Alv
+                FROM lasku l
+                JOIN varaus v ON l.varaus_id = v.varaus_id
+                JOIN varauksen_palvelut vp ON v.varaus_id = vp.varaus_id
+                JOIN palvelu p ON vp.palvelu_id = p.palvelu_id
+                WHERE l.lasku_id = @LaskuId;";
 
-    // ==================== CRUD =======================
-
+        return (await HaeData(sql, ("@LaskuId", laskuId)))
+            .AsEnumerable()
+            .Select(row => new Palvelu(
+                Convert.ToInt32(row["PalveluId"]),
+                Convert.ToInt32(row["AlueId"]),
+                row["Nimi"]?.ToString(),
+                row["Kuvaus"]?.ToString(),
+                Convert.ToDouble(row["Hinta"]),
+                Convert.ToDouble(row["Alv"])
+            )).ToList();
+    }
+    // =============== READ UPDATE DELETE ===============
     public async Task Lisaa(Lasku lasku)
     {
+        try {await TarkistaLasku(lasku);}
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlert("Virhe laskua lisättäessä", ex.Message, "OK");
+            return; // Ei viedä huonoa dataa tietokantaan.
+        }
         var sql = "INSERT INTO lasku (varaus_id, summa, alv, maksettu) VALUES (@varausId, @summa, @alv, @maksettu)";
         await SuoritaKomento(sql,
             ("@varausId", lasku.varaus_id),
@@ -68,9 +96,14 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
             ("@alv", lasku.alv),
             ("@maksettu", lasku.maksettu));
     }
-
     public async Task Muokkaa(Lasku lasku)
     {
+        try {await TarkistaLasku(lasku);}
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlert("Virhe laskua muokattaessa", ex.Message, "OK");
+            return; // Ei viedä huonoa dataa tietokantaan.
+        }
         var sql = "UPDATE lasku SET varaus_id = @varausId, summa = @summa, alv = @alv, maksettu = @maksettu WHERE lasku_id = @laskuId";
         await SuoritaKomento(sql,
             ("@laskuId", lasku.lasku_id),
@@ -79,14 +112,34 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
             ("@alv", lasku.alv),
             ("@maksettu", lasku.maksettu));
     }
-
-    public async Task Poista(int id)
+    public async Task Poista(uint id)
     {
         await SuoritaKomento("DELETE FROM lasku WHERE lasku_id = @laskuId", ("@laskuId", id));
     }
-
+    public async Task TarkistaLasku(Lasku lasku)
+    { 
+        SyoteValidointi.TarkistaDouble(lasku.alv, 0, 100);
+        SyoteValidointi.TarkistaDouble(lasku.summa, 0, double.MaxValue);
+    }
     // ==================== MUUT HAKUTOIMINNOT =======================
-
+    public async Task<Varaus> HaeVaraus(uint id)
+    {
+        var sql = "SELECT * FROM varaus WHERE varaus_id = @varausId";
+        var data = await HaeData(sql, ("@varausId", id));
+        return data.Rows.Count > 0 ? LuoVarausOlio(data.Rows[0]) : null;
+    }
+    public async Task<MokkiUint> HaeMokki(uint id)
+    {
+        var sql = "SELECT * FROM mokki WHERE mokki_id = @mokkiId";
+        var data = await HaeData(sql, ("@mokkiId", id));
+        return data.Rows.Count > 0 ? LuoMokkiOlio(data.Rows[0]) : null;
+    }
+    public async Task<Asiakas?> HaeAsiakas(uint id)
+    {
+        var sql = "SELECT * FROM asiakas WHERE asiakas_id = @asiakasId";
+        var data = await HaeData(sql, ("@asiakasId", id));
+        return data.Rows.Count > 0 ? LuoAsiakasOlio(data.Rows[0]) : null;
+    }
     public async Task<List<Varaus>> HaeKaikkiVaraukset()
     {
         var varaukset = new List<Varaus>();
@@ -115,7 +168,6 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
         }
         return varaukset;
     }
-
     public async Task<List<Asiakas>> HaeKaikkiAsiakkaat()
     {
         var data = await HaeData("SELECT * FROM asiakas");
@@ -123,15 +175,13 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
             .Select(row => LuoAsiakasOlio(row))
             .ToList();
     }
-
     // ==================== APUTOIMINNOT =======================
-
     private List<Lasku> LuoLaskuLista(DataTable data)
         => data.AsEnumerable().Select(row => LuoLaskuOlio(row)).ToList();
 
     private Lasku LuoLaskuOlio(DataRow row)
     {
-        var laskuId = Convert.ToInt32(row["lasku_id"]);
+        var laskuId = Convert.ToUInt32(row["lasku_id"]);
         var varausId = Convert.ToUInt32(row["varaus_id"]);
         var summa = double.TryParse(row["summa"]?.ToString(), out var s) ? s : 0;
         var alv = double.TryParse(row["alv"]?.ToString(), out var a) ? a : 0;
@@ -147,7 +197,6 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 
         return new Lasku(laskuId, varausId, summa, alv, maksettu);
     }
-
     private Asiakas LuoAsiakasOlio(DataRow row)
     {
         uint id = row["asiakas_id"] is int i ? (uint)i : Convert.ToUInt32(row["asiakas_id"]);
@@ -161,9 +210,50 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
             row["postinro"]?.ToString()
         );
     }
-
+    private MokkiUint LuoMokkiOlio(DataRow row)
+    {
+        return new MokkiUint
+        {
+            mokki_id = (uint)row["mokki_id"],
+            alue_id = (uint)row["alue_id"],
+            Postinro = row["postinro"]?.ToString(),
+            Mokkinimi = row["mokkinimi"]?.ToString(),
+            Katuosoite = row["katuosoite"]?.ToString(),
+            Hinta = Convert.ToDouble(row["hinta"]),
+            Kuvaus = row["kuvaus"]?.ToString(),
+            Henkilomaara = Convert.ToInt32(row["henkilomaara"]),
+            Varustelu = row["varustelu"]?.ToString()
+        };
+    } /* Tätä metodia pitäisi käyttää, mutta mokki_id ja alue_id int tyyppisenä aiheutti ongelmia. Aika vähissä, joten nopea ratkaisu meni hyvän edelle.
+    private Mokki LuoMokkiOlio(DataRow row)
+    {
+        return new Mokki
+        {
+            mokki_id = (int)row["mokki_id"],
+            alue_id = (int)row["alue_id"],
+            Postinro = row["postinro"]?.ToString(),
+            Mokkinimi = row["mokkinimi"]?.ToString(),
+            Katuosoite = row["katuosoite"]?.ToString(),
+            Hinta = Convert.ToDouble(row["hinta"]),
+            Kuvaus = row["kuvaus"]?.ToString(),
+            Henkilomaara = Convert.ToInt32(row["henkilomaara"]),
+            Varustelu = row["varustelu"]?.ToString()
+        };
+    } */
+    private Varaus LuoVarausOlio(DataRow r)
+    {
+        return new Varaus
+        {
+            varaus_id = Convert.ToUInt32(r["varaus_id"]),
+            asiakas_id = Convert.ToUInt32(r["asiakas_id"]),
+            mokki_id = Convert.ToUInt32(r["mokki_id"]),
+            varattu_pvm = Convert.ToDateTime(r["varattu_pvm"]),
+            vahvistus_pvm = r["vahvistus_pvm"] is DBNull ? null : Convert.ToDateTime(r["vahvistus_pvm"]),
+            varattu_alkupvm = Convert.ToDateTime(r["varattu_alkupvm"]),
+            varattu_loppupvm = Convert.ToDateTime(r["varattu_loppupvm"])
+        };
+    }
     // ==================== OVERRIDET =======================
-
     public override async Task<DataTable> HaeData(string sql, params (string, object)[] parameters)
     {
         using var conn = HaeYhteysTietokantaan();
@@ -175,7 +265,6 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
         await Task.Run(() => adapter.Fill(table));
         return table;
     }
-
     public override async Task<int> SuoritaKomento(string sql, params (string, object)[] parameters)
     {
         using var conn = HaeYhteysTietokantaan();
@@ -184,4 +273,18 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 
         return await cmd.ExecuteNonQueryAsync();
     }
+}
+public class MokkiUint
+{
+    // Kierran int ja uint ongelmaa mökki olioiden luonnissa nopeesti tekemällä uuden luokan joka hyödyntää uint tyyppistä muuttujaa.
+    // Välttää koodin uudelleen kirjoittamista, koska aika käy vähiin. 
+    public uint mokki_id { get; set; }
+    public uint alue_id { get; set; }
+    public string Postinro { get; set; }
+    public string Mokkinimi { get; set; }
+    public string Katuosoite { get; set; }
+    public double Hinta { get; set; }
+    public string Kuvaus { get; set; }
+    public int? Henkilomaara { get; set; }
+    public string Varustelu { get; set; }
 }
