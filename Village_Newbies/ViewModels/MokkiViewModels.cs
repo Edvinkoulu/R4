@@ -154,6 +154,7 @@ public class MokkiViewModel : BindableObject
         {
             // Error handling: show an alert, log, etc.
         }
+        LoadMokkis();
     }
 
     private async Task DeleteMokkiAsync(Mokki mokki)
