@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 public class LaskutusService
 {
+    public const int ERAPAIVA = 14; //Kuinka monen päivän päästä on laskun eräpäivä.
     private readonly LaskuDatabaseService laskuDatabaseService;
     public LaskutusService()
     {
@@ -23,20 +24,20 @@ public class LaskutusService
     {
         laskuDatabaseService = _laskuDatabaseService;
     }
-    public async Task LuoJaLahetaEmailLasku(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki)
+    public async Task LuoJaLahetaEmailLasku(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki, bool onMaksumuistutus = false)
     {
         List<Palvelu> valitutPalvelut = await laskuDatabaseService.HaeLaskunPalvelut(lasku);
-        LuoLasku(lasku, varaus, asiakas, mokki, valitutPalvelut);
+        LuoLasku(lasku, varaus, asiakas, mokki, valitutPalvelut, onMaksumuistutus);
         {
             if (asiakas != null && !string.IsNullOrEmpty(asiakas.email))
             {
-                string subject = $"Uusi Lasku - Varaus {varaus.varaus_id}";
+                string subject = $"{(onMaksumuistutus ? "Maksumuistutus" : "Uusi Lasku")} - Varaus {varaus.varaus_id}";
                 string body = $"Hyvä {asiakas.etunimi} {asiakas.sukunimi},\n\n" +
-                              "Liitteenä löydät laskun varauksestanne.\n\n" +
-                              "Kiitos varauksestanne!\n\n" +
-                              "Ystävällisin terveisin,\n" +
-                              "Village Newbies";
-                await Application.Current.MainPage.DisplayAlert("Sähköposti Luonnosteltu", $"Vastaanottaja: {asiakas.email}\nAihe: {subject}\nSisältö: {body}\n\n(Liite: Lasku_{lasku.lasku_id}_{asiakas.sukunimi}.pdf - (simuloitu lähetys)", "OK");
+                                    $"Liitteenä löydät {(onMaksumuistutus ? "maksumuistutuksen" : "laskun")} varauksestanne.\n\n" +
+                                    "Kiitos varauksestanne!\n\n" +
+                                    "Ystävällisin terveisin,\n" +
+                                    "Village Newbies";
+                await Application.Current.MainPage.DisplayAlert("Sähköposti Luonnosteltu (simuloitu lähetys)", $"Vastaanottaja: {asiakas.email}\nAihe: {subject}\nSisältö: {body}\n\n(Liite: {(onMaksumuistutus ? "Maksumuistutus" : $"Lasku")}_{lasku.lasku_id}_{asiakas.sukunimi}.pdf", "OK");
                 // Tähän sähköpostin lähetys koodit.
             }
             else
@@ -45,12 +46,12 @@ public class LaskutusService
             }
         }
     }
-    public async Task LuoLaskuPdf(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki)
+    public async Task LuoLaskuPdf(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki, bool onMaksumuistutus = false)
     {
         var valitutPalvelut = await laskuDatabaseService.HaeLaskunPalvelut(lasku);
-        LuoLasku(lasku, varaus, asiakas, mokki, valitutPalvelut);
+        LuoLasku(lasku, varaus, asiakas, mokki, valitutPalvelut, onMaksumuistutus);
     }
-    private async Task LuoLasku(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki, List<Palvelu> valitutPalvelut)
+    private async Task LuoLasku(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki, List<Palvelu> valitutPalvelut, bool onMaksumuistutus)
     {
         try
         {
@@ -65,36 +66,45 @@ public class LaskutusService
 
                     page.Header().Height(50).Background(Colors.Grey.Lighten1).Padding(10)
                         .AlignCenter()
-                        .Text("Lasku").FontSize(20).Bold().FontColor(Colors.Black);
+                        .Text(onMaksumuistutus ? "Maksumuistutus" : "Lasku").FontSize(20).Bold().FontColor(Colors.Black);
 
                     page.Content().Padding(10)
                         .Column(column =>
                         {
+                            LisaaYrityksenTiedot(column);
                             LisaaAsiakastiedot(column, asiakas);
                             LisaaMokinTiedot(column, mokki);
                             LisaaVaraustiedot(column, varaus);
-                            LisaaLaskutaulukko(column, lasku, varaus, valitutPalvelut);
+                            LisaaLaskutaulukko(column, lasku, varaus, valitutPalvelut, onMaksumuistutus ? "HETI" : $"{DateTime.Now.AddDays(ERAPAIVA):d}");
                         });
 
                     page.Footer().Height(30).Background(Colors.Grey.Lighten1).Padding(10)
                         .AlignCenter()
-                        .Text($"Lasku luotu: {DateTime.Now:d}").FontSize(8).FontColor(Colors.Black);
+                        .Text($"{(onMaksumuistutus ? "Maksumuistutus luotu" : "Lasku luotu")}: {DateTime.Now:d}").FontSize(8).FontColor(Colors.Black);
                 });
             });
-            string fileName = $"Lasku_{lasku.lasku_id}_{asiakas.sukunimi}.pdf";
+            string fileName = $"{(onMaksumuistutus ? "Maksumuistutus" : $"Lasku")}_{lasku.lasku_id}_{asiakas.sukunimi}.pdf";
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), fileName);
             document.GeneratePdf(filePath);
-            Console.WriteLine($"PDF-lasku luotu polkuun: {filePath}");
-            Application.Current.MainPage.DisplayAlert("Valmis", $"PDF-lasku tallennettu polkuun: {filePath}", "OK");
+            Console.WriteLine($"PDF {(onMaksumuistutus ? "maksumuistutus" : "lasku")} luotu polkuun: {filePath}");
+            await Application.Current.MainPage.DisplayAlert("Valmis", $"PDF {(onMaksumuistutus ? "maksumuistutus" : "lasku")} tallennettu polkuun: {filePath}", "OK");
         }
         catch (Exception ex)
         {
             await Application.Current.MainPage.DisplayAlert("Virhe", ex.Message, "Ok");
         }
     }
+    private void LisaaYrityksenTiedot(ColumnDescriptor column)
+    {
+        column.Item().Text(YrityksenTiedot.Nimi).Bold();
+        column.Item().Text(YrityksenTiedot.Osoite);
+        column.Item().Text($"{YrityksenTiedot.Postinro} {YrityksenTiedot.Postitoimipaikka}");
+        column.Item().Text($"Y-tunnus: {YrityksenTiedot.YTunnus}");
+        column.Item().PaddingTop(15);
+    }
     private void LisaaAsiakastiedot(ColumnDescriptor column, Asiakas asiakas)
     {
-        column.Item().PaddingBottom(5).Text("Asiakkaan tiedot").Bold();
+        column.Item().PaddingBottom(10).Text("Asiakkaan tiedot").Bold();
         column.Item().Text($"{asiakas.etunimi} {asiakas.sukunimi}");
         column.Item().Text(asiakas.lahiosoite);
         column.Item().Text(asiakas.postinro);
@@ -103,17 +113,17 @@ public class LaskutusService
     private void LisaaMokinTiedot(ColumnDescriptor column, Mokki mokki)
     {
         column.Item().Text($"Mökki: {mokki.Mokkinimi}");
-        column.Spacing(15);
+        column.Item().PaddingTop(15);
     }
     private void LisaaVaraustiedot(ColumnDescriptor column, Varaus varaus)
     {
-        column.Item().PaddingBottom(5).Text("Varaustiedot").Bold();
+        column.Item().PaddingBottom(10).Text("Varaustiedot").Bold();
         column.Item().Text($"Varausnumero: {varaus.varaus_id}");
         column.Item().Text($"Saapuminen: {varaus.varattu_alkupvm:d}");
         column.Item().Text($"Lähtö: {varaus.varattu_loppupvm:d}");
         column.Item().PaddingTop(10);
     }
-    private void LisaaLaskutaulukko(ColumnDescriptor column, Lasku lasku, Varaus varaus, List<Palvelu> valitutPalvelut)
+    private void LisaaLaskutaulukko(ColumnDescriptor column, Lasku lasku, Varaus varaus, List<Palvelu> valitutPalvelut, string eräpäiväTeksti)
     {
         column.Item().Table(table =>
         {
@@ -160,6 +170,12 @@ public class LaskutusService
             double kokonaissumma = LaskeKokonaissumma(lasku, valitutPalvelut);
             table.Cell().ColumnSpan(4).BorderTop(1).PaddingTop(5).Text("Yhteensä").Bold().AlignRight();
             table.Cell().BorderTop(1).PaddingTop(5).Text($"{kokonaissumma:F2} €").Bold().AlignRight();
+            table.Cell().ColumnSpan(5).PaddingTop(5).AlignLeft()
+            .Column(x =>
+            {
+                x.Item().Text($"Tilinumero: {YrityksenTiedot.tilinumero}");
+                x.Item().Text($"Eräpäivä: {eräpäiväTeksti}").Bold();
+            });
         });
     }
     private double LaskeKokonaissumma(Lasku lasku, List<Palvelu> palvelut)
@@ -197,15 +213,15 @@ public class LaskutusService
     // OVERLOADIT, purkkaliima jesari ratkaisu. Idea on vaihtaa mokkiUint luokan -> Mokki luokaksi jos kutsuva luokka käytti pikakorjausta.
     // Tämä on nyt pysyvä väliaikaisratkaisu olioiden luonti ongelmiin. Tein koska tämä oli nopea ratkaisu ja aika vähissä.
     // TODO: nämä voi poistaa kunhan koodi on siistitty.
-    public async Task LuoLaskuPdf(Lasku lasku, Varaus varaus, Asiakas asiakas, MokkiUint mokkiUint)
+    public async Task LuoLaskuPdf(Lasku lasku, Varaus varaus, Asiakas asiakas, MokkiUint mokkiUint, bool onkoMaksumuistutus = false)
     {
         Mokki mokki = WorkaroundMokki(mokkiUint);
-        await LuoLaskuPdf(lasku, varaus, asiakas, mokki);
+        await LuoLaskuPdf(lasku, varaus, asiakas, mokki, onkoMaksumuistutus);
     }
-    public async Task LuoJaLahetaEmailLasku(Lasku lasku, Varaus varaus, Asiakas asiakas, MokkiUint mokkiUint)
+    public async Task LuoJaLahetaEmailLasku(Lasku lasku, Varaus varaus, Asiakas asiakas, MokkiUint mokkiUint, bool onkoMaksumuistutus = false)
     {
         Mokki mokki = WorkaroundMokki(mokkiUint);
-        await LuoJaLahetaEmailLasku(lasku, varaus, asiakas, mokki);
+        await LuoJaLahetaEmailLasku(lasku, varaus, asiakas, mokki, onkoMaksumuistutus);
     }
     private Mokki WorkaroundMokki(MokkiUint mokkiUint)
     {

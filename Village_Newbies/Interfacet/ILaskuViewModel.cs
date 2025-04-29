@@ -43,6 +43,8 @@ public interface ILaskuViewModel
     ICommand SuodataMaksamattomatCommand { get; }
     ICommand TulostaLaskuCommand { get; }
     ICommand LahetaLaskuEmailillaCommand { get; }
+    ICommand TulostaMaksumuistutusCommand { get; }
+    ICommand LahetaMaksumuistutusEmailillaCommand { get; }
 
     Task InitializeAsync();
     uint HaeAsiakasId(uint varausId);

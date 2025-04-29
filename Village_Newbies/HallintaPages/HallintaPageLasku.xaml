@@ -93,25 +93,43 @@
                                                  VerticalOptions="Center"/>
                                    </HorizontalStackLayout>
                                    <Grid ColumnDefinitions="*,*,*,*,*"
-                                         ColumnSpacing="10">
+                                         RowDefinitions="50,50"
+                                         ColumnSpacing="10"
+                                         RowSpacing="10">
                                           <Button Grid.Column="0"
+                                                  Grid.Row="0"
                                                   Text="Tulosta PDF"
                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=TulostaLaskuCommand}"
                                                   CommandParameter="{Binding .}"
                                                   IsVisible="{Binding IsEditing}"/>
                                           <Button Grid.Column="1"
+                                                  Grid.Row="0"
                                                   Text="Lähetä sähköpostiin"
                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=LahetaLaskuEmailillaCommand}"
                                                   CommandParameter="{Binding .}"
                                                   IsVisible="{Binding IsEditing}"/>
                                           <Button Grid.Column="3"
+                                                  Grid.Row="0"
                                                   Text="Tallenna muutokset"
                                                   Command="{Binding TallennaLaskuCommand}"
                                                   IsEnabled="{Binding CanSave}"
                                                   IsVisible="{Binding IsEditing}"/>
                                           <Button Grid.Column="4"
+                                                  Grid.Row="0"
                                                   Text="Peruuta muokkaus"
                                                   Command="{Binding ClearValittuLaskuCommand}"
+                                                  IsVisible="{Binding IsEditing}"/>
+                                          <Button Grid.Column="0"
+                                                  Grid.Row="1"
+                                                  Text="Tulosta maksumuistutus PDF"
+                                                  Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=TulostaMaksumuistutusCommand}"
+                                                  CommandParameter="{Binding .}"
+                                                  IsVisible="{Binding IsEditing}"/>
+                                          <Button Grid.Column="1"
+                                                  Grid.Row="1"
+                                                  Text="Lähetä maksumuistutus sähköpostiin"
+                                                  Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=LahetaMaksumuistutusEmailillaCommand}"
+                                                  CommandParameter="{Binding .}"
                                                   IsVisible="{Binding IsEditing}"/>
                                    </Grid>
                             </StackLayout>
