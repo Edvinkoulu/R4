@@ -1,46 +1,107 @@
+-- Clear tebles 
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE vn.varauksen_palvelut;
+TRUNCATE TABLE vn.lasku;
+TRUNCATE TABLE vn.varaus;
+TRUNCATE TABLE vn.mokki;
+TRUNCATE TABLE vn.asiakas;
+TRUNCATE TABLE vn.posti;
+TRUNCATE TABLE vn.palvelu;
+TRUNCATE TABLE vn.alue;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- Test data for 'alue' table
-INSERT INTO vn.alue (nimi) VALUES
+INSERT IGNORE INTO vn.alue (nimi) VALUES
 ('Lappi'),
 ('Häme'),
-('Savo');
+('Savo'),
+('Etelä-Suomi');
 
 -- Test data for 'posti' table
-INSERT INTO vn.posti (postinro, toimipaikka) VALUES
+INSERT IGNORE INTO vn.posti (postinro, toimipaikka) VALUES
 ('00100', 'Helsinki'),
 ('33100', 'Tampere'),
-('70100', 'Kuopio');
+('70100', 'Kuopio'),
+('99490', 'Kilpisjärvi');
+
 
 -- Test data for 'asiakas' table
-INSERT INTO vn.asiakas (postinro, etunimi, sukunimi, lahiosoite, email, puhelinnro) VALUES
+INSERT IGNORE INTO vn.asiakas (postinro, etunimi, sukunimi, lahiosoite, email, puhelinnro) VALUES
 ('00100', 'Matti', 'Meikäläinen', 'Esimerkkitie 1', 'matti@example.com', '0401234567'),
-('33100', 'Liisa', 'Testaaja', 'Koodikatu 2', 'liisa@testi.com', '0457654321');
+('33100', 'Liisa', 'Testaaja', 'Koodikatu 2', 'liisa@testi.com', '0457654321'),
+('70100', 'Sanni', 'Savolainen', 'Hiihtäjäntie 3', 'sanni123@testi.fi','1234567890'),
+('99490', 'Jouko', 'Vaara', 'poropolku 104', 'jouko@testi.fi','0401234145');
 
 -- Test data for 'mokki' table
-INSERT INTO vn.mokki (alue_id, postinro, mokkinimi, katuosoite, hinta, kuvaus, henkilomaara, varustelu) VALUES
-(1, '00100', 'Lumikki', 'Joulukatu 24', 150.00, 'Hiihtomökki Lapissa', 4, 'Sauna, WiFi'),
-(2, '33100', 'Koivu', 'Kesäkatu 10', 100.00, 'Kesämökki järven rannalla', 6, 'Grilli, vene');
+INSERT IGNORE INTO vn.mokki (alue_id, postinro, mokkinimi, katuosoite, hinta, kuvaus, henkilomaara, varustelu) VALUES
+(1, '99490', 'Lumikki', 'Joulukatu 24', 150.00, 'Hiihtomökki Lapissa', 4, 'Sauna, WiFi'),
+(2, '33100', 'Koivu', 'Kesäkatu 10', 100.00, 'Kesämökki järven rannalla', 6, 'Grilli, vene'),
+(3, '70100', 'Puijon torni','Puijontie 135', 400.00, 'Puijontornin vuokraus ',10,'Maisema, Hissi, Sauna, Wifi') ,
+(4, '00100','Stadi', 'Runeberginkatu 7', 200.00, 'Kerrostalo ydinkeskustassa', 4,'Wifi, Keittiö' );
 
 -- Test data for 'varaus' table
-INSERT INTO vn.varaus (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm) VALUES
+INSERT IGNORE INTO vn.varaus (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm) VALUES
 (1, 1, NOW(), NOW(), '2025-06-01', '2025-06-07'),
 (2, 2, NOW(), NOW(), '2025-07-15', '2025-07-22'),
 (1, 2, NOW(), NOW(), '2025-06-15', '2025-06-20'),
-(2, 1, NOW(), NOW(), '2025-08-01', '2025-08-07');
+(2, 1, NOW(), NOW(), '2025-08-01', '2025-08-07'),
+(3, 3, NOW(), NOW(), '2025-06-10', '2025-06-15'),
+(4, 4, NOW(), NOW(), '2025-06-20', '2025-06-25'),
+(3, 2, NOW(), NOW(), '2025-07-01', '2025-07-05'),
+(1, 1, NOW(), NOW(), '2025-06-28', '2025-07-05'),
+(2, 2, NOW(), NOW(), '2025-07-10', '2025-07-15'),
+(3, 3, NOW(), NOW(), '2025-06-05', '2025-06-10'),
+(4, 4, NOW(), NOW(), '2025-08-05', '2025-08-10'),
+(1, 4, NOW(), NOW(), '2025-07-20', '2025-07-27'),
+(2, 1, NOW(), NOW(), '2025-06-03', '2025-06-10'),
+(3, 2, NOW(), NOW(), '2025-08-12', '2025-08-19'),
+(4, 3, NOW(), NOW(), '2025-06-18', '2025-06-23'),
+(1, 1, NOW(), NOW(), '2025-05-10', '2025-05-15'),
+(2, 2, NOW(), NOW(), '2025-05-20', '2025-05-25'),
+(3, 3, NOW(), NOW(), '2025-05-28', '2025-06-02'),
+(4, 4, NOW(), NOW(), '2025-05-30', '2025-06-04');
 
 -- Test data for 'lasku' table
-INSERT INTO vn.lasku (lasku_id, varaus_id, summa, alv, maksettu) VALUES
+INSERT IGNORE INTO vn.lasku (lasku_id, varaus_id, summa, alv, maksettu) VALUES
 (1, 1, 1050.00, 24.00, 0),
-(2, 2, 800.00, 24.00, 1);
+(2, 2, 800.00, 24.00, 1),
+(3, 3, 2000.00, 24.00, 1),
+(4, 4, 1200.00, 24.00, 0),
+(5, 5, 900.00, 24.00, 1),
+(6, 6, 650.00, 24.00, 1),
+(7, 7, 750.00, 24.00, 0),
+(8, 8, 400.00, 24.00, 1),
+(9, 9, 550.00, 24.00, 0),
+(10, 10, 750.00, 24.00, 1),
+(11, 11, 300.00, 24.00, 1),
+(12, 12, 1000.00, 24.00, 1),
+(13, 13, 900.00, 24.00, 0),
+(14, 14, 1100.00, 24.00, 1),
+(15, 15, 700.00, 24.00, 0),
+(16, 16, 500.00, 24.00, 1),
+(17, 17, 800.00, 24.00, 1),
+(18, 18, 450.00, 24.00, 1);
 
 -- Test data for 'palvelu' table
-INSERT INTO vn.palvelu (alue_id, nimi, kuvaus, hinta, alv) VALUES
+INSERT IGNORE INTO vn.palvelu (alue_id, nimi, kuvaus, hinta, alv) VALUES
 (1, 'Hiihtolippu', 'Päivälippu ladulle', 25.00, 10.00),
 (1, 'Saunavuoro', 'Yksityinen saunavuoro', 35.00, 10.00),
 (2, 'Veneen vuokraus', 'Veneen vuokraus järven rannalla', 50.00, 10.00);
 
 -- Test data for 'varauksen_palvelut' table
-INSERT INTO vn.varauksen_palvelut (varaus_id, palvelu_id, lkm) VALUES
+INSERT IGNORE INTO vn.varauksen_palvelut (varaus_id, palvelu_id, lkm) VALUES
 (1, 1, 2),  -- Asiakas 1 on varannut 2 hiihtolippua
 (1, 2, 1),  -- Asiakas 1 on varannut 1 saunavuoron
 (2, 2, 1),  -- Asiakas 2 on varannut 1 saunavuoron
-(2, 3, 1);  -- Asiakas 2 on varannut 1 veneen vuokrauksen
+(2, 3, 1),  -- Asiakas 2 on varannut 1 veneen vuokrauksen
+(3, 1, 1),  -- Asiakas 3 varasi hiihtolipun
+(3, 2, 2),  -- Asiakas 3 varasi 2 saunavuoroa
+(4, 3, 1),  -- Asiakas 4 varasi veneen
+(5, 1, 3),  -- Asiakas 3 varasi 3 hiihtolippua
+(5, 2, 1),  -- Asiakas 3 varasi 1 saunavuoron
+(8, 1, 1),
+(8, 2, 1),
+(9, 3, 1),
+(10, 1, 2),
+(11, 2, 1),
+(11, 3, 1);
