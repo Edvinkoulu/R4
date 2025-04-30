@@ -73,8 +73,7 @@ public class LaskutusService
                         {
                             LisaaYrityksenTiedot(column);
                             LisaaAsiakastiedot(column, asiakas);
-                            LisaaMokinTiedot(column, mokki);
-                            LisaaVaraustiedot(column, varaus);
+                            LisaaVaraustiedot(column, varaus, mokki);
                             LisaaLaskutaulukko(column, lasku, varaus, valitutPalvelut, onMaksumuistutus ? "HETI" : $"{DateTime.Now.AddDays(ERAPAIVA):d}");
                         });
 
@@ -110,15 +109,11 @@ public class LaskutusService
         column.Item().Text(asiakas.postinro);
         column.Item().Text($"Sähköposti: {asiakas.email}");
     }
-    private void LisaaMokinTiedot(ColumnDescriptor column, Mokki mokki)
-    {
-        column.Item().Text($"Mökki: {mokki.Mokkinimi}");
-        column.Item().PaddingTop(15);
-    }
-    private void LisaaVaraustiedot(ColumnDescriptor column, Varaus varaus)
+    private void LisaaVaraustiedot(ColumnDescriptor column, Varaus varaus, Mokki mokki)
     {
         column.Item().PaddingBottom(10).Text("Varaustiedot").Bold();
         column.Item().Text($"Varausnumero: {varaus.varaus_id}");
+        column.Item().Text($"Mökki: {mokki.Mokkinimi}");
         column.Item().Text($"Saapuminen: {varaus.varattu_alkupvm:d}");
         column.Item().Text($"Lähtö: {varaus.varattu_loppupvm:d}");
         column.Item().PaddingTop(10);
