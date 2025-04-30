@@ -102,5 +102,40 @@ namespace Village_Newbies.Services
                 return await conn.ExecuteAsync(query, new { MokkiId = mokkiId }); // Execute the delete query
             }
         }
+        public async Task<List<MajoitusRaportti>> HaeMajoitusRaportti(DateTime alkuPvm, DateTime loppuPvm, int alueId)
+{
+    using (var conn = _databaseConnector._getConnection())
+    {
+        await conn.OpenAsync();
+
+        string query = @"
+            SELECT 
+                m.mokkinimi AS MokkiNimi,
+                v.varattu_alkupvm AS VarattuAlkuPvm,
+                v.varattu_loppupvm AS VarattuLoppuPvm,
+                CONCAT(a.etunimi, ' ', a.sukunimi) AS AsiakasNimi,
+                DATEDIFF(v.varattu_loppupvm, v.varattu_alkupvm) AS KestoPaivina,
+                DATEDIFF(v.varattu_loppupvm, v.varattu_alkupvm) * m.hinta AS HintaYhteensa
+            FROM 
+                varaus v
+            JOIN 
+                mokki m ON v.mokki_id = m.mokki_id
+            JOIN 
+                asiakas a ON v.asiakas_id = a.asiakas_id
+            WHERE 
+                v.varattu_alkupvm BETWEEN @AlkuPvm AND @LoppuPvm
+                AND m.alue_id = @AlueId
+        ";
+
+        var tulokset = await conn.QueryAsync<MajoitusRaportti>(query, new
+        {
+            AlkuPvm = alkuPvm,
+            LoppuPvm = loppuPvm,
+            AlueId = alueId
+        });
+
+        return tulokset.ToList();
+    }
+}
     }
 }

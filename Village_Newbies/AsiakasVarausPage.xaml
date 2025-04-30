@@ -4,11 +4,4 @@
              x:Class="Village_Newbies.AsiakasVarausPage"
              Title="Varaus Page">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="30">
-        <Label Text="Welcome to the asiakas varaus page!"
-               FontSize="24"
-               HorizontalOptions="Center" />
-    </VerticalStackLayout>
-    </ScrollView>
 </ContentPage>

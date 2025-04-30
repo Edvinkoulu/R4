@@ -125,23 +125,26 @@ public async Task<IEnumerable<PalveluRaportti>> GetOstetutLisapalvelutRaportti(D
     await conn.OpenAsync();
 
     // SQL-kysely palveluiden hakemiseksi
-    string query = @"
-        SELECT 
-            p.nimi AS PalveluNimi,
-            p.kuvaus AS PalveluKuvaus,
-            p.hinta AS PalveluHinta,
-            v.varattu_alkupvm AS VarattuAlkuPvm,
-            v.varattu_loppupvm AS VarattuLoppuPvm
-        FROM 
-            varauksen_palvelut vp
-        JOIN 
-            varaus v ON vp.varaus_id = v.varaus_id
-        JOIN 
-            palvelu p ON vp.palvelu_id = p.palvelu_id
-        WHERE 
-            v.varattu_alkupvm BETWEEN @AlkuPvm AND @LoppuPvm
-            AND p.alue_id IN @Alueet
-    ";
+string query = @"
+    SELECT 
+        p.nimi AS PalveluNimi,
+        p.kuvaus AS PalveluKuvaus,
+        p.hinta AS PalveluHinta,
+        v.varattu_alkupvm AS VarattuAlkuPvm,
+        v.varattu_loppupvm AS VarattuLoppuPvm,
+        CONCAT(a.etunimi, ' ', a.sukunimi) AS AsiakasNimi
+    FROM 
+        varauksen_palvelut vp
+    JOIN 
+        varaus v ON vp.varaus_id = v.varaus_id
+    JOIN 
+        palvelu p ON vp.palvelu_id = p.palvelu_id
+    JOIN 
+        asiakas a ON v.asiakas_id = a.asiakas_id
+    WHERE 
+        v.varattu_alkupvm BETWEEN @AlkuPvm AND @LoppuPvm
+        AND p.alue_id IN @Alueet
+";
 
     var parameters = new 
     {

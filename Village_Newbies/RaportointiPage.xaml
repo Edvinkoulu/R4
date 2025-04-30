@@ -30,16 +30,64 @@
             <Button Text="Näytä raportti" 
                     Command="{Binding LoadRaporttiCommand}" />
 
-            <CollectionView ItemsSource="{Binding Raportti}">
+            <Label Text="{Binding HakuehdotYhteenveto}" 
+       FontAttributes="Italic" 
+       FontSize="Large"
+       TextColor="Gray"
+       Margin="0,10,0,5"/>
+
+            <CollectionView ItemsSource="{Binding Raportti}" IsVisible="{Binding IsLisapalvelutVisible}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Frame BorderColor="LightGray" Padding="10" CornerRadius="10" Margin="5">
                             <StackLayout>
-                                <Label Text="{Binding PalveluNimi}" FontAttributes="Bold" FontSize="Medium"/>
-                                <Label Text="{Binding PalveluKuvaus, StringFormat='PalveluKuvaus: {0}'}" />
-                                <Label Text="{Binding PalveluHinta, StringFormat='Palveluhinta: {0:C}'}" />
-                                 <Label Text="{Binding VarattuAlkuPvm, StringFormat='VarattuAlkuPvm: {0:C}'}" />
-                                  <Label Text="{Binding VarattuLoppuPvm, StringFormat='VarattuLoppuPvm: {0:C}'}" />
+                                <Label Text="{Binding PalveluNimi}" 
+                                        FontAttributes="Bold"
+                                        FontSize="Medium">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <FormattedString.Spans>
+                                                        <Span Text="{Binding PalveluNimi}" />
+                                                        <Span Text=", " />
+                                                        <Span Text="{Binding VarattuAlkuPvm, StringFormat='{0:dd.M.yyyy}'}" />
+                                                        <Span Text="–" />
+                                                        <Span Text="{Binding VarattuLoppuPvm, StringFormat='{0:dd.M.yyyy}'}" />
+                                                    </FormattedString.Spans>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label Text="{Binding AsiakasNimi, StringFormat='Asiakas: {0}'}" />
+                                        <Label Text="{Binding PalveluKuvaus}" />
+                                        <Label Text="{Binding PalveluHinta, StringFormat='Hinta: {0:C}'}" />
+                                        <Label Text="{Binding KestoPaivina, StringFormat='Kesto: {0} päivää'}" />
+                                        <Label Text="{Binding HintaYhteensa, StringFormat='Yhteensä: {0:C}'}" />
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <CollectionView ItemsSource="{Binding MajoitusRaporttiLista}" IsVisible="{Binding IsMajoittumisetVisible}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame BorderColor="LightGray" Padding="10" CornerRadius="10" Margin="5">
+                            <StackLayout>
+                                <Label>
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <FormattedString.Spans>
+                                                <Span Text="{Binding MokkiNimi}" />
+                                                <Span Text=", " />
+                                                <Span Text="{Binding VarattuAlkuPvm, StringFormat='{0:dd.M.yyyy}'}" />
+                                                <Span Text="–" />
+                                                <Span Text="{Binding VarattuLoppuPvm, StringFormat='{0:dd.M.yyyy}'}" />
+                                            </FormattedString.Spans>
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label Text="{Binding AsiakasNimi, StringFormat='Asiakas: {0}'}" />
+                                <Label Text="{Binding KestoPaivina, StringFormat='Kesto: {0} päivää'}" />
+                                <Label Text="{Binding HintaYhteensa, StringFormat='Yhteensä: {0:C}'}" />
                             </StackLayout>
                         </Frame>
                     </DataTemplate>

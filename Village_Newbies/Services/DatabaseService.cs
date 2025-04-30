@@ -5,6 +5,7 @@ using MySqlConnector;
 using System.Data;
 using System.Threading.Tasks;
 
+
 // Tätä ei ole tarkoitus luoda missään vaan käyttää periytymisen yhteydessä kun teet tietovarastoja.
 // Kaikki tietovarastot tarvitsee yhteyden tietokantaan ja tämä luokka sitten toteuttaa ne metodit.
 // Eipähän tarvitse tehdä samaa viittä kertaa. JaniV
