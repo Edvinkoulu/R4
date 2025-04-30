@@ -53,11 +53,13 @@
 
             <Entry Placeholder="Hinta"
                    Keyboard="Numeric"
-                   Text="{Binding UusiPalvelu.Hinta}" />
+                   Text="{Binding UusiPalvelu.Hinta}" 
+                   ToolTipProperties.Text = "Hinta"/>
 
             <Entry Placeholder="ALV (%)"
                    Keyboard="Numeric"
-                   Text="{Binding UusiPalvelu.Alv}" />
+                   Text="{Binding UusiPalvelu.Alv}"
+                   ToolTipProperties.Text = "ALV (%)" />
 
             <!--ALUEPICKER!!!!!!!-->
             <Picker x:Name="AluePicker"
