@@ -10,16 +10,16 @@ public class Asiakas
 
     private string postinumero;
 
-    public string etunimi     { get; set; }
-    public string sukunimi    { get; set; }
-    public string lahiosoite  { get; set; }
-    public string email       { get; set; }
-    public string puhelinnro  { get; set; }
+    public string etunimi { get; set; }
+    public string sukunimi { get; set; }
+    public string lahiosoite { get; set; }
+    public string email { get; set; }
+    public string puhelinnro { get; set; }
 
-    
+
     public Asiakas() { }
 
-    
+
     public Asiakas(string etunimi, string sukunimi,
                    string lahiosoite, string email,
                    string puhelinnro, string postinro)
@@ -30,13 +30,13 @@ public class Asiakas
                    string lahiosoite, string email,
                    string puhelinnro, string postinro)
     {
-        this.asiakasId   = asiakasId;
-        this.etunimi     = etunimi;
-        this.sukunimi    = sukunimi;
-        this.lahiosoite  = lahiosoite;
-        this.email       = email;
-        this.puhelinnro  = puhelinnro;
-        this.postinro    = postinro;
+        this.asiakasId = asiakasId;
+        this.etunimi = etunimi;
+        this.sukunimi = sukunimi;
+        this.lahiosoite = lahiosoite;
+        this.email = email;
+        this.puhelinnro = puhelinnro;
+        this.postinro = postinro;
     }
 
     // 3.  Vanha property jätetään koskematta → olemassa olevat
@@ -49,8 +49,9 @@ public class Asiakas
     //  set => postinumero = SyoteValidointi.TarkistaPostinumero(value); Tämä herjaa jo täytettäessä.
     //}
     public string postinro
-{
-    get => postinumero;
-    set => postinumero = value;
-}
+    {
+        get => postinumero;
+        set => postinumero = value;
+    }
+    public string kokoNimi => $"{sukunimi} {etunimi}"; // Tarvitaan laskujen hallintaa varten. JaniV
 }
