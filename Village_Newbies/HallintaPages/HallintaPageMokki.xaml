@@ -60,7 +60,8 @@
                    Text="{Binding NewMokki.Katuosoite}"/>
             <Entry Placeholder="Hinta"
                    Text="{Binding NewMokki.Hinta}"
-                   Keyboard="Numeric"/>
+                   Keyboard="Numeric"
+                   ToolTipProperties.Text = "Hinta"/>
             <Entry Placeholder="Kuvaus"
                    Text="{Binding NewMokki.Kuvaus}"/>
             <Entry Placeholder="Henkilomaara"

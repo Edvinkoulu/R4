@@ -32,6 +32,7 @@ public class AlueViewModel : INotifyPropertyChanged
         UpdateAlueCommand = new Command(async () => await UpdateAlue());
         DeleteAlueCommand = new Command<Alue>(async (alue) => await DeleteAlue(alue));
         AsetaValittuAlueNullCommand = new Command(AsetaValittuAlueNull);
+        SelectedAlueCommand = new Command<Alue>(ValitseAlueMuokkaustaVarten);
     }
     public AlueViewModel(AlueDatabaseService dbService)
     {
@@ -42,6 +43,7 @@ public class AlueViewModel : INotifyPropertyChanged
         UpdateAlueCommand = new Command(async () => await UpdateAlue());
         DeleteAlueCommand = new Command<Alue>(async (alue) => await DeleteAlue(alue));
         AsetaValittuAlueNullCommand = new Command(AsetaValittuAlueNull);
+        SelectedAlueCommand = new Command<Alue>(ValitseAlueMuokkaustaVarten);
     }
 
     public async Task InitializeAsync()
@@ -113,6 +115,7 @@ public class AlueViewModel : INotifyPropertyChanged
     }
     //Komentoja
     public bool IsNotEditing => !IsEditing;
+    public ICommand SelectedAlueCommand { get; }
     public ICommand LoadAlueetCommand { get; }
     public ICommand AddAlueCommand { get; }
     public ICommand UpdateAlueCommand { get; }
@@ -207,7 +210,13 @@ public class AlueViewModel : INotifyPropertyChanged
             }
         }
     }
-
+    private void ValitseAlueMuokkaustaVarten(Alue alue)
+    {
+        if (alue != null)
+        {
+            SelectedAlue = alue; // Tämä asettaa UusiAlueNimi-kentän ja IsEditing-tilan
+        }
+    }
     public event PropertyChangedEventHandler PropertyChanged;
 
     protected virtual void OnPropertyChanged(string propertyName)

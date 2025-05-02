@@ -13,8 +13,8 @@ using System.Globalization;
 using System.Linq;
 using System;
 
-// Laskujen hallinnassa ei voi tehdä uusia laskuja toistaiseksi.
-// Laskujen lisääminen kuitenkin pitäisi onnistua laskudatabase servicen kautta tarvittaessa.
+// Laskujen hallinnassa ei voi tehdä uusia laskuja. Lasku pitää tehdä asiakasvarauksen täytön yhteydessä
+// Laskujen lisääminen onnistuu laskudatabasea hyödyntämällä.
 
 public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
 {
@@ -34,6 +34,7 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
     public ObservableCollection<Mokki> Mokit { get; } = new();
     public ObservableCollection<Asiakas> Asiakkaat { get; } = new();
     private ObservableCollection<Asiakas> _kaikkiAsiakkaat = new();
+    private ObservableCollection<Palvelu> _laskunPalvelut = new();
     public LaskuViewModel()
     {
         _laskutusService = new LaskutusService(_laskuDb);
@@ -84,25 +85,41 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
     {
         get => _selectedLasku;
         set => SetProperty(ref _selectedLasku, value, async () =>
-    {
-        IsEditing = value != null;
-        UpdateInputFromValittuLasku();
-        OnkoMuutoksia = false;
-        ValittuVaraus = Varaukset.FirstOrDefault(v => v.varaus_id == value?.varaus_id);
-
-        if (ValittuVaraus?.mokki_id != null)
         {
-            var mokkiId = (int)ValittuVaraus.mokki_id;
-            if (!Mokit.Any(m => m.mokki_id == mokkiId))
+            IsEditing = value != null;
+            UpdateInputFromValittuLasku();
+            OnkoMuutoksia = false;
+            ValittuVaraus = Varaukset.FirstOrDefault(v => v.varaus_id == value?.varaus_id);
+
+            if (ValittuVaraus?.mokki_id != null)
             {
-                var mokki = await _mokkiDb.GetMokkiByIdAsync(mokkiId);
-                if (mokki != null)
+                var mokkiId = (int)ValittuVaraus.mokki_id;
+                if (!Mokit.Any(m => m.mokki_id == mokkiId))
                 {
-                    MainThread.BeginInvokeOnMainThread(() => Mokit.Add(mokki));
+                    var mokki = await _mokkiDb.GetMokkiByIdAsync(mokkiId);
+                    if (mokki != null)
+                    {
+                        MainThread.BeginInvokeOnMainThread(() => Mokit.Add(mokki));
+                    }
                 }
             }
-        }
-    });
+            if (value != null)
+            {
+                LaskunPalvelut.Clear();
+                var palvelut = await _laskuDb.HaeLaskunPalvelut(value);
+                foreach (var palvelu in palvelut)
+                {
+                    LaskunPalvelut.Add(palvelu);
+                }
+            }
+            else
+            {
+                LaskunPalvelut.Clear();
+            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PalveluidenSummaIlmanVeroa)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(KokonaissummaVerojenKanssa)));
+
+        });
     }
     private void UpdateInputFromValittuLasku()
     {
@@ -218,9 +235,27 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         get => _onkoMuutoksia;
         private set => SetProperty(ref _onkoMuutoksia, value, () => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanSave))));
     }
+    public ObservableCollection<Palvelu> LaskunPalvelut
+    {
+        get => _laskunPalvelut;
+        private set => SetProperty(ref _laskunPalvelut, value, () =>
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PalveluidenSummaIlmanVeroa)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(KokonaissummaVerojenKanssa)));
+        });
+    }
     private string _varausAsiakas = "Tyhjä";
     private string _varausMokki = "Tyhjä";
     private string _varausPvm = "Tyhjä";
+    public double PalveluidenSummaIlmanVeroa => LaskunPalvelut?.Sum(p => p.Hinta) ?? 0;
+    public double KokonaissummaVerojenKanssa
+    {
+        get
+        {
+            if (ValittuLasku == null) return 0;
+            return _laskutusService.LaskeKokonaissumma(ValittuLasku, LaskunPalvelut?.ToList() ?? new List<Palvelu>());
+        }
+    }
     // =========================================
     // ========= Propertyt: Validointi========== Jos käyttäjä tekee virheellisiä syötteitä, nämä sitten tekevät virheilmoituksen käyttöliittymään
     // =========================================
@@ -281,6 +316,10 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
             PaivitaNaytettavatLaskut(_kaikkiLaskut.ToList());
             await PaivitaAsiakasListaKaikista();
             await HaeMokit();
+            if (Laskut.FirstOrDefault() != null)
+            {
+                ValittuLasku = Laskut.First();
+            }
         }
         catch (Exception ex)
         {
@@ -360,12 +399,40 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         {
             lasku.ViewModel = this; // Aseta ViewModel-viittaus, tarvitaan asiakkaiden tietojen näyttämiseen suodatettujen laskujen listassa.
             Laskut.Add(lasku);
+        } // Päivitetään ValittuLasku, jotta palvelut latautuvat uudelleen tarvittaessa
+        if (ValittuLasku != null && laskut.Any(l => l.lasku_id == ValittuLasku.lasku_id))
+        {
+            ValittuLasku = laskut.First(l => l.lasku_id == ValittuLasku.lasku_id);
+        }
+        else if (laskut.Any())
+        {
+            ValittuLasku = laskut.First();
+        }
+        else
+        {
+            ValittuLasku = null;
         }
     }
-    private void SuodataMaksamattomat()
+    private async void SuodataMaksamattomat()
     {
-        var maksamattomat = _kaikkiLaskut.Where(l => !l.maksettu).ToList();
-        PaivitaNaytettavatLaskut(maksamattomat);
+        List<Lasku> suodatetutLaskut = _kaikkiLaskut.Where(l => !l.maksettu).ToList();
+
+        if (ValittuAlue != null)
+        {
+            suodatetutLaskut = suodatetutLaskut.Where(l => Varaukset.Any(v => v.varaus_id == l.varaus_id && Mokit.Any(m => m.mokki_id == v.mokki_id && m.alue_id == ValittuAlue.alue_id))).ToList();
+        }
+
+        if (ValittuMokki != null)
+        {
+            suodatetutLaskut = suodatetutLaskut.Where(l => Varaukset.Any(v => v.varaus_id == l.varaus_id && v.mokki_id == ValittuMokki.mokki_id)).ToList();
+        }
+
+        if (ValittuAsiakas != null)
+        {
+            suodatetutLaskut = suodatetutLaskut.Where(l => Varaukset.Any(v => v.varaus_id == l.varaus_id && v.asiakas_id == ValittuAsiakas.asiakas_id)).ToList();
+        }
+
+        PaivitaNaytettavatLaskut(suodatetutLaskut);
     }
     public Asiakas? HaeAsiakas(uint varausId)
     {
@@ -393,6 +460,7 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         ValittuAsiakas = null;
         ValittuLasku = null;
         Laskut.Clear();
+        LaskunPalvelut.Clear();
         await LoadData();
     }
     private async Task<Tuple<Varaus, Asiakas, Mokki>> HaeLaskunTiedot()
@@ -540,15 +608,18 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         storage = value;
         onChanged?.Invoke();
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        // Asetetaan OnkoMuutoksia trueksi, jos muokataan jotain syötekenttää (paitsi validointivirheet)
         if (new string[] { nameof(UusiVarausId), nameof(UusiSumma), nameof(UusiAlv), nameof(UusiMaksettu) }.Contains(propertyName))
         {
             OnkoMuutoksia = true;
         }
-        // Päivitetään CanSave
         if (new string[] { nameof(UusiVarausId), nameof(UusiSumma), nameof(UusiAlv), nameof(ValittuVaraus), nameof(OnkoMuutoksia), nameof(SummaVirhe), nameof(AlvVirhe), nameof(VarausIdVirhe) }.Contains(propertyName))
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanSave)));
+        }
+        if (propertyName == nameof(ValittuLasku))
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PalveluidenSummaIlmanVeroa)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(KokonaissummaVerojenKanssa)));
         }
     }
 }

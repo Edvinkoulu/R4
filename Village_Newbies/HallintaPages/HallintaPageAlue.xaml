@@ -75,16 +75,22 @@
                         <Frame Margin="5"
                                Padding="10"
                                BorderColor="Gray">
-                            <Grid>
+                            <Grid
+                                ColumnSpacing="10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions>
                                 <Label Text="{Binding alue_nimi}"
                                        VerticalOptions="Center"
-                                       FontSize="18"/>
-                                <!-- Poista alue nappi -->
+                                       FontSize="18"
+                                       Grid.Column="0"/>
                                 <Button Grid.Column="1"
+                                        Text="Muokkaa"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AlueViewModel}}, Path=SelectedAlueCommand}"
+                                        CommandParameter="{Binding .}"
+                                        VerticalOptions="Center"/>
+                                <Button Grid.Column="2"
                                         Text="Poista"
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AlueViewModel}}, Path=DeleteAlueCommand}"
                                         CommandParameter="{Binding .}"

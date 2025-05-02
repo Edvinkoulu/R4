@@ -119,7 +119,7 @@ public static class SyoteValidointi
         }
         else if (postinumero.Length != 5)
         {
-            throw new ArgumentException("Postinumeron pituuden tulee olla 5 merkkiä pitkä");
+            
         }
 
         foreach (char merkki in postinumero)

@@ -16,13 +16,28 @@ public class LaskutusService
 {
     public const int ERAPAIVA = 14; //Kuinka monen päivän päästä on laskun eräpäivä.
     private readonly LaskuDatabaseService laskuDatabaseService;
+    string laskutFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Village_Newbies", "Laskut");
     public LaskutusService()
     {
         laskuDatabaseService = new LaskuDatabaseService();
+        LuoLaskutKansio();
     }
     public LaskutusService(LaskuDatabaseService _laskuDatabaseService)
     {
         laskuDatabaseService = _laskuDatabaseService;
+        LuoLaskutKansio();
+    }
+    private void LuoLaskutKansio()
+    {
+        if (!Directory.Exists(laskutFolderPath))
+        {
+            Directory.CreateDirectory(laskutFolderPath);
+            Console.WriteLine($"Luotu laskukansio polkuun: {laskutFolderPath}");
+        }
+        else
+        {
+            Console.WriteLine($"Laskukansio on jo olemassa polussa: {laskutFolderPath}");
+        }
     }
     public async Task LuoJaLahetaEmailLasku(Lasku lasku, Varaus varaus, Asiakas asiakas, Mokki mokki, bool onMaksumuistutus = false)
     {
@@ -73,8 +88,7 @@ public class LaskutusService
                         {
                             LisaaYrityksenTiedot(column);
                             LisaaAsiakastiedot(column, asiakas);
-                            LisaaMokinTiedot(column, mokki);
-                            LisaaVaraustiedot(column, varaus);
+                            LisaaVaraustiedot(column, varaus, mokki);
                             LisaaLaskutaulukko(column, lasku, varaus, valitutPalvelut, onMaksumuistutus ? "HETI" : $"{DateTime.Now.AddDays(ERAPAIVA):d}");
                         });
 
@@ -84,7 +98,8 @@ public class LaskutusService
                 });
             });
             string fileName = $"{(onMaksumuistutus ? "Maksumuistutus" : $"Lasku")}_{lasku.lasku_id}_{asiakas.sukunimi}.pdf";
-            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), fileName);
+            string filePath = Path.Combine(laskutFolderPath, fileName);
+
             document.GeneratePdf(filePath);
             Console.WriteLine($"PDF {(onMaksumuistutus ? "maksumuistutus" : "lasku")} luotu polkuun: {filePath}");
             await Application.Current.MainPage.DisplayAlert("Valmis", $"PDF {(onMaksumuistutus ? "maksumuistutus" : "lasku")} tallennettu polkuun: {filePath}", "OK");
@@ -110,15 +125,11 @@ public class LaskutusService
         column.Item().Text(asiakas.postinro);
         column.Item().Text($"Sähköposti: {asiakas.email}");
     }
-    private void LisaaMokinTiedot(ColumnDescriptor column, Mokki mokki)
-    {
-        column.Item().Text($"Mökki: {mokki.Mokkinimi}");
-        column.Item().PaddingTop(15);
-    }
-    private void LisaaVaraustiedot(ColumnDescriptor column, Varaus varaus)
+    private void LisaaVaraustiedot(ColumnDescriptor column, Varaus varaus, Mokki mokki)
     {
         column.Item().PaddingBottom(10).Text("Varaustiedot").Bold();
         column.Item().Text($"Varausnumero: {varaus.varaus_id}");
+        column.Item().Text($"Mökki: {mokki.Mokkinimi}");
         column.Item().Text($"Saapuminen: {varaus.varattu_alkupvm:d}");
         column.Item().Text($"Lähtö: {varaus.varattu_loppupvm:d}");
         column.Item().PaddingTop(10);
@@ -178,7 +189,7 @@ public class LaskutusService
             });
         });
     }
-    private double LaskeKokonaissumma(Lasku lasku, List<Palvelu> palvelut)
+    public double LaskeKokonaissumma(Lasku lasku, List<Palvelu> palvelut)
     {
         double majoitusHintaAlv = lasku.summa * (1 + (lasku.alv / 100));
         double palveluidenHintaAlv = 0;

@@ -35,7 +35,10 @@ namespace Village_Newbies.Behaviors
                 ((Entry)sender).Text = "";
                 return;
             }
-
+            if (args.NewTextValue.Contains(".")) // Sallitaan vain , desimaalierottimena.
+            {
+                ((Entry)sender).Text = args.OldTextValue;
+            }
             if (IsDouble)
             {
                 if (!double.TryParse(args.NewTextValue, NumberStyles.AllowDecimalPoint | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _))

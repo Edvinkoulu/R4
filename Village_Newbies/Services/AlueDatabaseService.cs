@@ -12,109 +12,56 @@ using DatabaseConnection;
 
 public class AlueDatabaseService : DatabaseService, IAlueDatabaseService
 {
-    // Muodostimet
-    public AlueDatabaseService()
-    {
-    }
-    public AlueDatabaseService(DatabaseConnector connection) : base(connection)
-    {
-    }
+    public AlueDatabaseService() { }
+    public AlueDatabaseService(DatabaseConnector connection) : base(connection) { }
 
-    // CRUD toiminnallisuus
     public async Task<Alue> Hae(uint id)
     {
         string sql = "SELECT alue_id, nimi FROM alue WHERE alue_id = @alueId";
-        DataTable dataTable = await HaeData(sql, ("@alueId", id));
-        if (dataTable.Rows.Count > 0)
-        {
-            return LuoAlueOlio(dataTable.Rows[0]);
-        }
-        return null;
+        return await HaeYksi(sql, LuoAlueOlio, ("@alueId", id));
     }
-
     public async Task<List<Alue>> HaeKaikki()
     {
         string sql = "SELECT alue_id, nimi FROM alue";
-        DataTable dataTable = await HaeData(sql);
-        List<Alue> alueet = new List<Alue>();
-        foreach (DataRow row in dataTable.Rows)
-        {
-            alueet.Add(LuoAlueOlio(row));
-        }
-        return alueet;
+        return await HaeLista(sql, LuoAlueOlio);
     }
-
     public async Task Lisaa(Alue alue)
     {
         string sql = "INSERT INTO alue (nimi) VALUES (@nimi)";
         await SuoritaKomento(sql, ("@nimi", alue.alue_nimi));
     }
-
     public async Task Muokkaa(Alue alue)
     {
-        string sql = "UPDATE alue SET nimi = @nimi WHERE alue_id = @alueId";
-        await SuoritaKomento(sql, ("@nimi", alue.alue_nimi), ("@alueId", alue.alue_id));
+        if (alue != null)
+        {
+            var nykyinenAlue = await Hae(alue.alue_id);
+            if (nykyinenAlue != null)
+            {
+                bool vahvistus = await VahvistaToiminto("Muokkaus", $"Haluatko varmasti vaihtaa alueen '{nykyinenAlue.alue_nimi}' nimeksi '{alue.alue_nimi}'?");
+                if (vahvistus)
+                {
+                    string sql = "UPDATE alue SET nimi = @nimi WHERE alue_id = @alueId";
+                    await SuoritaKomento(sql, ("@nimi", alue.alue_nimi), ("@alueId", alue.alue_id));
+                }
+            }
+        }
     }
-
     public async Task Poista(uint id)
     {
-        string sql = "DELETE FROM alue WHERE alue_id = @alueId";
-        await SuoritaKomento(sql, ("@alueId", id));
+        var alue = await Hae(id);
+        if (alue != null)
+        {
+            bool vahvistus = await VahvistaToiminto("Poisto", $"Haluatko varmasti poistaa alueen '{alue.alue_nimi}'?");
+            if (vahvistus)
+            {
+                string sql = "DELETE FROM alue WHERE alue_id = @alueId";
+                await SuoritaKomento(sql, ("@alueId", id));
+            }
+        }
     }
-
     private Alue LuoAlueOlio(DataRow row)
     {
-        uint alueId;
-
-        // Tarkistetaan sarakkeen tyyppi ja muunnetaan tarvittaessa int -> uint. Ehkä turhaa koodia?
-        if (row["alue_id"] is int intValue)
-        {
-            if (intValue < 0)
-            {
-                throw new ArgumentOutOfRangeException($"Int32-arvo {intValue} ei saa olla negatiivinen alue_id-kentässä.");
-            }
-            alueId = (uint)intValue;
-        }
-        else if (row["alue_id"] is uint uintValue)
-        {
-            alueId = uintValue;
-        }
-        else
-        {
-            throw new InvalidCastException($"Odottamaton tietotyyppi alue_id-kentässä: {row["alue_id"].GetType()}");
-        }
-
+        uint alueId = Convert.ToUInt32(row["alue_id"]);
         return new Alue(alueId, row["nimi"].ToString());
-    }
-
-    public override async Task<DataTable> HaeData(string sql, params (string, object)[] parameters)
-    {
-        using (var yhteys = HaeYhteysTietokantaan())
-        using (MySqlCommand komento = new MySqlCommand(sql, yhteys))
-        {
-            foreach (var param in parameters)
-            {
-                komento.Parameters.AddWithValue(param.Item1, param.Item2);
-            }
-            using (MySqlDataAdapter adapteri = new MySqlDataAdapter(komento))
-            {
-                DataTable dataTaulu = new DataTable();
-                await Task.Run(() => adapteri.Fill(dataTaulu));
-                return dataTaulu;
-            }
-        }
-    }
-
-    public override async Task<int> SuoritaKomento(string sql, params (string, object)[] parameters)
-    {
-        using (var yhteys = HaeYhteysTietokantaan())
-        using (MySqlCommand komento = new MySqlCommand(sql, yhteys))
-        {
-            foreach (var param in parameters)
-            {
-                komento.Parameters.AddWithValue(param.Item1, param.Item2);
-            }
-            return await komento.ExecuteNonQueryAsync();
-        }
     }
 }
