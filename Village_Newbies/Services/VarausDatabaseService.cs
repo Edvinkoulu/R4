@@ -88,5 +88,7 @@ namespace Village_Newbies.Services
 
         private List<Varaus> LuoLista(DataTable taulu)
             => taulu.AsEnumerable().Select(r => LuoOlio(r)).ToList();
+
+        
     }
 }
