@@ -101,6 +101,10 @@
                                           <Label Text="Maksettu"
                                                  VerticalOptions="Center"/>
                                    </HorizontalStackLayout>
+                                   <Label Text="{Binding PalveluidenSummaIlmanVeroa, StringFormat='Lisäpalvelut (ilman ALV): {0:C}'}"/>
+                                   <Label Text="{Binding KokonaissummaVerojenKanssa, StringFormat='Kokonaissumma (sis. ALV): {0:C}'}"
+                                          FontAttributes="Bold"
+                                          FontSize="16"/>
                                    <Grid ColumnDefinitions="*,*,*,*,*"
                                          RowDefinitions="50,50"
                                          ColumnSpacing="10"
@@ -159,8 +163,9 @@
                                                         <Grid.ColumnDefinitions>
                                                                <ColumnDefinition Width="Auto"/>
                                                                <ColumnDefinition Width="2*"/>
-                                                               <ColumnDefinition Width="2*"/>
-                                                               <ColumnDefinition Width="12*"/>
+                                                               <ColumnDefinition Width="3*"/>
+                                                               <ColumnDefinition Width="4*"/>
+                                                               <ColumnDefinition Width="8*"/>
                                                                <ColumnDefinition Width="3*"/>
                                                                <ColumnDefinition Width="2*"/>
                                                         </Grid.ColumnDefinitions>
@@ -184,12 +189,19 @@
                                                                <Label Text="{Binding AsiakkaanEmail, StringFormat='{0}'}"/>
                                                                <Label Text="{Binding AsiakkaanPuhNro, StringFormat='{0}'}"/>
                                                         </StackLayout>
+                                                        <!-- Tähän tarvitaan lista kokonaissummista, jotta näkyy oikein.
+                                                        <StackLayout Grid.Column="4"
+                                                                     HorizontalOptions="Start">
+                                                               <Label Text="{Binding ViewModel.KokonaissummaVerojenKanssa, StringFormat='Yhteensä: {0:C}'}"
+                                                                      FontAttributes="Bold"
+                                                                      FontSize="14"/>
+                                                        </StackLayout> -->
                                                         <Button Text="Valitse"
-                                                                Grid.Column="4"
+                                                                Grid.Column="5"
                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=ValitseLaskuCommand}"
                                                                 CommandParameter="{Binding .}"/>
                                                         <Button Text="Poista järjestelmästä"
-                                                                Grid.Column="5"
+                                                                Grid.Column="6"
                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=PoistaLaskuCommand}"
                                                                 CommandParameter="{Binding .}"/>
                                                  </Grid>

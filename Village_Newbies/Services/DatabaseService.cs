@@ -18,58 +18,58 @@ public abstract class DatabaseService : IDataHaku
     //Muodostimet
     public DatabaseService()
     {
-        dbConnector = new DatabaseConnector(); 
+        dbConnector = new DatabaseConnector();
     }
     public DatabaseService(DatabaseConnector databaseConnector)
     {
         dbConnector = databaseConnector;
     }
-
     protected MySqlConnection HaeYhteysTietokantaan()
     {
         var connection = dbConnector._getConnection();
         connection.Open();
         return connection;
     }
-
-    // Override metodit, pakko toteuttaa perivässä luokassa
-    
+    protected async Task<bool> VahvistaToiminto(string toiminto, string viesti)
+    {
+        if (Application.Current?.MainPage != null)
+        {
+            return await Application.Current.MainPage.DisplayAlert($"Vahvista '{toiminto}", viesti, "Kyllä", "Ei");
+        }
+        // Jos MainPage on null, palautetaan false, koska vahvistusta ei voida näyttää.
+        return false;
+    }
+    protected async Task<T> HaeYksi<T>(string sql, Func<DataRow, T> luonti, params (string, object)[] parametrit)
+    {
+        var data = await HaeData(sql, parametrit);
+        return data.Rows.Count > 0 ? luonti(data.Rows[0]) : default;
+    }
+    protected async Task<List<T>> HaeLista<T>(string sql, Func<DataRow, T> luonti, params (string, object)[] parametrit)
+    {
+        var data = await HaeData(sql, parametrit);
+        return data.AsEnumerable().Select(luonti).ToList();
+    }
     // HaeData: Suorittaa SQL-kyselyn, joka palauttaa dataa, ja palauttaa sen DataTable-oliona.
     // SuoritaKomento: Suorittaa SQL-komennon (INSERT, UPDATE, DELETE) ja palauttaa muutettujen rivien määrän.
-    public abstract Task<DataTable> HaeData(string sql, params (string, object)[] parameters);
-    public abstract Task<int> SuoritaKomento(string sql, params (string, object)[] parameters);
-
-    /* ESIM: 
-    
-        public override async Task<DataTable> HaeData(string sql, params (string, object)[] parameters)
+    public virtual async Task<DataTable> HaeData(string sql, params (string, object)[] parameters)
     {
-        using (var yhteys = HaeYhteysTietokantaan())
-        using (MySqlCommand komento = new MySqlCommand(sql, yhteys))
-        {
-            foreach (var param in parameters)
-            {
-                komento.Parameters.AddWithValue(param.Item1, param.Item2);
-            }
-            using (MySqlDataAdapter adapteri = new MySqlDataAdapter(komento))
-            {
-                DataTable dataTaulu = new DataTable();
-                await Task.Run(() => adapteri.Fill(dataTaulu));
-                return dataTaulu;
-            }
-        }
-    }
+        using var conn = HaeYhteysTietokantaan();
+        using var cmd = new MySqlCommand(sql, conn);
+        foreach (var (nimi, arvo) in parameters)
+            cmd.Parameters.AddWithValue(nimi, arvo);
 
-    public override async Task<int> SuoritaKomento(string sql, params (string, object)[] parameters)
-    {
-        using (var yhteys = HaeYhteysTietokantaan())
-        using (MySqlCommand komento = new MySqlCommand(sql, yhteys))
-        {
-            foreach (var param in parameters)
-            {
-                komento.Parameters.AddWithValue(param.Item1, param.Item2);
-            }
-            return await komento.ExecuteNonQueryAsync();
-        }
+        var table = new DataTable();
+        using var adapter = new MySqlDataAdapter(cmd);
+        await Task.Run(() => adapter.Fill(table));
+        return table;
     }
-    */
+    public virtual async Task<int> SuoritaKomento(string sql, params (string, object)[] parameters)
+    {
+        using var conn = HaeYhteysTietokantaan();
+        using var cmd = new MySqlCommand(sql, conn);
+        foreach (var (nimi, arvo) in parameters)
+            cmd.Parameters.AddWithValue(nimi, arvo);
+
+        return await cmd.ExecuteNonQueryAsync();
+    }
 }

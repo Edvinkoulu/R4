@@ -83,7 +83,7 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
     // =============== READ UPDATE DELETE ===============
     public async Task Lisaa(Lasku lasku)
     {
-        try {await TarkistaLasku(lasku);}
+        try { await TarkistaLasku(lasku); }
         catch (Exception ex)
         {
             await Application.Current.MainPage.DisplayAlert("Virhe laskua lisättäessä", ex.Message, "OK");
@@ -98,26 +98,51 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
     }
     public async Task Muokkaa(Lasku lasku)
     {
-        try {await TarkistaLasku(lasku);}
-        catch (Exception ex)
+        if (lasku != null)
         {
-            await Application.Current.MainPage.DisplayAlert("Virhe laskua muokattaessa", ex.Message, "OK");
-            return; // Ei viedä huonoa dataa tietokantaan.
+            Lasku? nykyinenLasku = await Hae(lasku.lasku_id);
+            if (nykyinenLasku != null)
+            {
+                bool vahvistus = await VahvistaToiminto(
+                    "Muokkaa laskua",
+                    $"Haluatko varmasti muokata laskua ID:llä {nykyinenLasku.lasku_id} (varaus ID: {nykyinenLasku.varaus_id})?"
+                );
+                if (vahvistus)
+                {
+                    try { await TarkistaLasku(lasku); }
+                    catch (Exception ex)
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Virhe laskua muokattaessa", ex.Message, "OK");
+                        return; // Ei viedä huonoa dataa tietokantaan.
+                    }
+                    var sql = "UPDATE lasku SET varaus_id = @varausId, summa = @summa, alv = @alv, maksettu = @maksettu WHERE lasku_id = @laskuId";
+                    await SuoritaKomento(sql,
+                        ("@laskuId", lasku.lasku_id),
+                        ("@varausId", lasku.varaus_id),
+                        ("@summa", lasku.summa),
+                        ("@alv", lasku.alv),
+                        ("@maksettu", lasku.maksettu));
+                }
+            }
         }
-        var sql = "UPDATE lasku SET varaus_id = @varausId, summa = @summa, alv = @alv, maksettu = @maksettu WHERE lasku_id = @laskuId";
-        await SuoritaKomento(sql,
-            ("@laskuId", lasku.lasku_id),
-            ("@varausId", lasku.varaus_id),
-            ("@summa", lasku.summa),
-            ("@alv", lasku.alv),
-            ("@maksettu", lasku.maksettu));
     }
     public async Task Poista(uint id)
     {
-        await SuoritaKomento("DELETE FROM lasku WHERE lasku_id = @laskuId", ("@laskuId", id));
+        Lasku? poistettavaLasku = await Hae(id);
+        if (poistettavaLasku != null)
+        {
+            bool vahvistus = await VahvistaToiminto(
+                "Poista lasku",
+                $"Haluatko varmasti poistaa laskun ID:llä {poistettavaLasku.lasku_id} (varaus ID: {poistettavaLasku.varaus_id})?"
+            );
+            if (vahvistus)
+            {
+                await SuoritaKomento("DELETE FROM lasku WHERE lasku_id = @laskuId", ("@laskuId", id));
+            }
+        }
     }
     public async Task TarkistaLasku(Lasku lasku)
-    { 
+    {
         SyoteValidointi.TarkistaDouble(lasku.alv, 0, 100);
         SyoteValidointi.TarkistaDouble(lasku.summa, 0, double.MaxValue);
     }
@@ -142,38 +167,14 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
     }
     public async Task<List<Varaus>> HaeKaikkiVaraukset()
     {
-        var varaukset = new List<Varaus>();
-        try
-        {
-            using var conn = HaeYhteysTietokantaan();
-            using var cmd = new MySqlCommand("SELECT * FROM varaus", conn);
-            using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                varaukset.Add(new Varaus
-                {
-                    varaus_id = (uint)reader.GetInt32(0),
-                    asiakas_id = (uint)reader.GetInt32(1),
-                    mokki_id = (uint)reader.GetInt32(2),
-                    varattu_pvm = reader.GetDateTime(3),
-                    vahvistus_pvm = reader.IsDBNull(4) ? DateTime.MinValue : reader.GetDateTime(4),
-                    varattu_alkupvm = reader.GetDateTime(5),
-                    varattu_loppupvm = reader.GetDateTime(6)
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Virhe varauksia haettaessa", ex);
-        }
-        return varaukset;
+        var sql = "SELECT * FROM varaus";
+        var data = await HaeData(sql);
+        return data.AsEnumerable().Select(LuoVarausOlio).ToList();
     }
     public async Task<List<Asiakas>> HaeKaikkiAsiakkaat()
     {
         var data = await HaeData("SELECT * FROM asiakas");
-        return data.AsEnumerable()
-            .Select(row => LuoAsiakasOlio(row))
-            .ToList();
+        return data.AsEnumerable().Select(LuoAsiakasOlio).ToList();
     }
     // ==================== APUTOIMINNOT =======================
     private List<Lasku> LuoLaskuLista(DataTable data)
@@ -252,26 +253,6 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
             varattu_alkupvm = Convert.ToDateTime(r["varattu_alkupvm"]),
             varattu_loppupvm = Convert.ToDateTime(r["varattu_loppupvm"])
         };
-    }
-    // ==================== OVERRIDET =======================
-    public override async Task<DataTable> HaeData(string sql, params (string, object)[] parameters)
-    {
-        using var conn = HaeYhteysTietokantaan();
-        using var cmd = new MySqlCommand(sql, conn);
-        foreach (var (nimi, arvo) in parameters) cmd.Parameters.AddWithValue(nimi, arvo);
-
-        var table = new DataTable();
-        using var adapter = new MySqlDataAdapter(cmd);
-        await Task.Run(() => adapter.Fill(table));
-        return table;
-    }
-    public override async Task<int> SuoritaKomento(string sql, params (string, object)[] parameters)
-    {
-        using var conn = HaeYhteysTietokantaan();
-        using var cmd = new MySqlCommand(sql, conn);
-        foreach (var (nimi, arvo) in parameters) cmd.Parameters.AddWithValue(nimi, arvo);
-
-        return await cmd.ExecuteNonQueryAsync();
     }
 }
 public class MokkiUint
