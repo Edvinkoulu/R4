@@ -52,7 +52,7 @@
                 </StackLayout>
             </Frame>
 
-            <!-- Tee varaus -osio säilytetty TÄYSIN ENTISENÄ -->
+            <!-- Tee varaus -osio säilytetty ENTISENÄ -->
             <Label Text="Tee varaus:" FontSize="18" Margin="0,10,0,0"/>
             <Frame Margin="5" Padding="10" BorderColor="Gray">
                 <StackLayout Spacing="10">
@@ -75,7 +75,7 @@
                 </StackLayout>
             </Frame>
 
-            <!-- Varauslista LISÄTTY nimenomaisesti ilman mitään muutoksia -->
+            <!-- Varauslista + CRUD-napit -->
             <Label Text="Varaukset:" FontSize="18" Margin="0,10,0,0" />
             <CollectionView ItemsSource="{Binding Varaukset}" SelectedItem="{Binding ValittuVaraus}">
                 <CollectionView.ItemTemplate>
@@ -88,14 +88,23 @@
                                 <Label Text="{Binding varattu_pvm, StringFormat='Varattu: {0:dd.MM.yyyy}'}" />
                                 <Label Text="{Binding varattu_alkupvm, StringFormat='Alkupvm: {0:dd.MM.yyyy}'}" />
                                 <Label Text="{Binding varattu_loppupvm, StringFormat='Loppupvm: {0:dd.MM.yyyy}'}" />
-                                <Button Text="Poista" 
-                                        Command="{Binding BindingContext.PoistaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" />
+                                <HorizontalStackLayout>
+                                    <Button Text="Poista" 
+                                            Command="{Binding BindingContext.PoistaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" />
+                                    <Button Text="Muokkaa" 
+                                            Command="{Binding BindingContext.MuokkaaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" />
+                                </HorizontalStackLayout>
                             </StackLayout>
                         </Frame>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
+            <!-- Lisää uusi varaus -nappi -->
+            <Button Text="Lisää uusi varaus"
+                    Command="{Binding LisaaVarausCommand}"
+                    BackgroundColor="LightGreen"
+                    Margin="0,10,0,0"/>
         </StackLayout>
     </ScrollView>
 </ContentPage>

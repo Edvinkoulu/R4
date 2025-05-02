@@ -15,6 +15,8 @@ namespace Village_Newbies.ViewModels
 
         public ICommand HaeKaikkiVarauksetCommand { get; }
         public ICommand PoistaVarausCommand { get; }
+        public ICommand MuokkaaVarausCommand { get; }
+        public ICommand LisaaVarausCommand { get; }
 
         private Varaus? _valittuVaraus;
         public Varaus? ValittuVaraus
@@ -31,6 +33,8 @@ namespace Village_Newbies.ViewModels
         {
             HaeKaikkiVarauksetCommand = new Command(async () => await HaeKaikkiVaraukset());
             PoistaVarausCommand = new Command(async () => await PoistaValittuVaraus());
+            MuokkaaVarausCommand = new Command(async () => await MuokkaaValittuVaraus());
+            LisaaVarausCommand = new Command(async () => await LisaaUusiVaraus());
             _ = HaeKaikkiVaraukset();
         }
 
@@ -49,6 +53,32 @@ namespace Village_Newbies.ViewModels
                 await _varausService.Poista((int)ValittuVaraus.varaus_id);
                 await HaeKaikkiVaraukset();
             }
+        }
+
+        private async Task MuokkaaValittuVaraus()
+        {
+            if (ValittuVaraus != null)
+            {
+                await _varausService.Muokkaa(ValittuVaraus);
+                await HaeKaikkiVaraukset();
+            }
+        }
+
+        private async Task LisaaUusiVaraus()
+        {
+            // Simppeli esimerkki: lisää tyhjän varauksen (voit muuttaa kentät)
+            var uusi = new Varaus
+            {
+                asiakas_id = 1,
+                mokki_id = 1,
+                varattu_pvm = DateTime.Now,
+                vahvistus_pvm = null,
+                varattu_alkupvm = DateTime.Now,
+                varattu_loppupvm = DateTime.Now.AddDays(1)
+            };
+
+            await _varausService.Lisaa(uusi);
+            await HaeKaikkiVaraukset();
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -69,9 +69,29 @@ namespace Village_Newbies.Services
         {
             await SuoritaKomento("DELETE FROM varaus WHERE varaus_id = @id", ("@id", id));
         }
+        public async Task Muokkaa(Varaus varaus)
+{
+    var sql = @"UPDATE varaus
+                SET asiakas_id = @asiakas_id,
+                    mokki_id = @mokki_id,
+                    varattu_pvm = @varattu_pvm,
+                    vahvistus_pvm = @vahvistus_pvm,
+                    varattu_alkupvm = @varattu_alkupvm,
+                    varattu_loppupvm = @varattu_loppupvm
+                WHERE varaus_id = @varaus_id";
+
+    await SuoritaKomento(sql,
+        ("@asiakas_id", varaus.asiakas_id),
+        ("@mokki_id", varaus.mokki_id),
+        ("@varattu_pvm", varaus.varattu_pvm),
+        ("@vahvistus_pvm", varaus.vahvistus_pvm ?? (object)DBNull.Value),
+        ("@varattu_alkupvm", varaus.varattu_alkupvm),
+        ("@varattu_loppupvm", varaus.varattu_loppupvm),
+        ("@varaus_id", varaus.varaus_id));
+}
 
         // ==================== APUMETODIT =======================
-
+        
         private Varaus LuoOlio(DataRow r)
         {
             return new Varaus
@@ -88,7 +108,8 @@ namespace Village_Newbies.Services
 
         private List<Varaus> LuoLista(DataTable taulu)
             => taulu.AsEnumerable().Select(r => LuoOlio(r)).ToList();
-
+    
         
     }
+    
 }
