@@ -45,7 +45,7 @@
 
             <Picker x:Name="AluePicker"
                     SelectedItem="{Binding SelectedAlue}"
-                    
+                    Title="Valitse Alue"
                     ItemsSource="{Binding AlueList}">
                 <Picker.ItemDisplayBinding>
                     <Binding Path="alue_nimi"/>
@@ -58,10 +58,10 @@
                    Text="{Binding NewMokki.Mokkinimi}"/>
             <Entry Placeholder="Katuosoite"
                    Text="{Binding NewMokki.Katuosoite}"/>
-            <Entry Placeholder="Hinta"
-                   Text="{Binding NewMokki.Hinta}"
+            <Entry Placeholder="Hinta (€)"
                    Keyboard="Numeric"
-                   ToolTipProperties.Text = "Hinta"/>
+                   Text="{Binding UusiPalvelu.Hinta, Converter={StaticResource ZeroToEmptyStringConverter}}" />
+
             <Entry Placeholder="Kuvaus"
                    Text="{Binding NewMokki.Kuvaus}"/>
             <Entry Placeholder="Henkilomaara"
