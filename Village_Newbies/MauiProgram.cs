@@ -16,7 +16,7 @@ public static class MauiProgram
 			});
 
 			// Ohjelma kaatuu jos tämä rivi puuttuu ja käytetään QuestPDF:ää
-			//QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+			QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 #if DEBUG
 		builder.Logging.AddDebug();
