@@ -200,44 +200,38 @@ namespace Village_Newbies.ViewModels
         }
 
        private async Task UpdatePalvelu()
-{
-    System.Diagnostics.Debug.WriteLine(
-        $"ID: {UusiPalvelu.palvelu_id}, " +
-        $"Nimi: {UusiPalvelu.Nimi}, " +
-        $"Kuvaus: {UusiPalvelu.Kuvaus}, " +
-        $"AlueId: {UusiPalvelu.alue_id}, " +
-        $"Hinta: {UusiPalvelu.Hinta}, " +
-        $"ALV: {UusiPalvelu.Alv}"
-    );
-
-    // Tarkistetaan, että ID on asetettu oikein
-    if (UusiPalvelu == null || UusiPalvelu.palvelu_id <= 0)
-    {
-        await Application.Current.MainPage.DisplayAlert("Virhe", "Virheellinen palvelu ID", "OK");
-        return;
-    }
-
-    try
-    {
-        // Yritetään päivittää palvelu tietokantaan
-        int result = await _databaseService.UpdatePalveluAsync(UusiPalvelu);
-
-        if (result > 0)
         {
-            await LoadPalvelut();
-            ClearForm();
+            System.Diagnostics.Debug.WriteLine(
+            $"ID: {UusiPalvelu.palvelu_id}, " +
+            $"Nimi: {UusiPalvelu.Nimi}, " +
+            $"Kuvaus: {UusiPalvelu.Kuvaus}, " +
+            $"AlueId: {UusiPalvelu.alue_id}, " +
+            $"Hinta: {UusiPalvelu.Hinta}, " +
+            $"ALV: {UusiPalvelu.Alv}"
+            );
+
+
+        try
+            {
+            // Yritetään päivittää palvelu tietokantaan
+            int result = await _databaseService.UpdatePalveluAsync(UusiPalvelu);
+
+                if (result > 0)
+                {
+                    await LoadPalvelut();
+                    ClearForm();
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Virhe", "Palvelun päivittäminen epäonnistui.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {       
+                System.Diagnostics.Debug.WriteLine($"Virhe muokkauksessa: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Virhe", $"Tietokantavirhe: {ex.Message}", "OK");
+            }
         }
-        else
-        {
-            await Application.Current.MainPage.DisplayAlert("Virhe", "Palvelun päivittäminen epäonnistui.", "OK");
-        }
-    }
-    catch (Exception ex)
-    {
-        System.Diagnostics.Debug.WriteLine($"Virhe muokkauksessa: {ex.Message}");
-        await Application.Current.MainPage.DisplayAlert("Virhe", $"Tietokantavirhe: {ex.Message}", "OK");
-    }
-}
 
         private async Task DeletePalvelu(Palvelu palvelu)
         {
