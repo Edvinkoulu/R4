@@ -27,7 +27,11 @@
                     ContentTemplate="{DataTemplate views:HallintaPageLasku}" />      
         <ShellContent Title="Palvelut"
                     Route="PalveluPage"
-                    ContentTemplate="{DataTemplate views:HallintaPagePalvelu}" />                  
+                    ContentTemplate="{DataTemplate views:HallintaPagePalvelu}" />  
+                    <ShellContent
+                        Title="Postinumerot"
+                        Route="PostiPage"
+                        ContentTemplate="{DataTemplate views:HallintaPagePosti}" />                
     </Tab>
 </FlyoutItem>
 

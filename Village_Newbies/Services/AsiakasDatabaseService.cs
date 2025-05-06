@@ -129,5 +129,7 @@ public class AsiakasDatabaseService : DatabaseService, IAsiakasDatabaseService
         r["email"]       as string,
         r["puhelinnro"]  as string,
         r["postinro"]    as string);
+
+        
 }
 

@@ -8,7 +8,7 @@ public class Asiakas
     //     LastInsertId‑arvolla lisäyksen jälkeen.
     internal uint asiakasId;
 
-    private string postinumero;
+    public string postinro {get; set;}
 
     public string etunimi { get; set; }
     public string sukunimi { get; set; }
@@ -48,10 +48,6 @@ public class Asiakas
     //    get => postinumero;
     //  set => postinumero = SyoteValidointi.TarkistaPostinumero(value); Tämä herjaa jo täytettäessä.
     //}
-    public string postinro
-    {
-        get => postinumero;
-        set => postinumero = value;
-    }
+
     public string kokoNimi => $"{sukunimi} {etunimi}"; // Tarvitaan laskujen hallintaa varten. JaniV
 }
