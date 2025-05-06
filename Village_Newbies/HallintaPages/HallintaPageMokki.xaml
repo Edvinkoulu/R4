@@ -19,7 +19,7 @@
                                 <Label Text="{Binding Katuosoite}" FontSize="14"/>
                                 <Label Text="{Binding Kuvaus}" FontSize="12"/>
                                 <Label Text="{Binding Hinta, StringFormat='Price: {0:C}'}" FontSize="14"/>
-
+                                <Label Text="{Binding Varustelu}" FontSize="12"/>
                                 <HorizontalStackLayout Spacing="8">
                                     <Button Text="Edit" Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.LoadMokkiForEditCommand}" CommandParameter="{Binding}" WidthRequest="80"/>
                                     <Button Text="Delete" Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.DeleteMokkiCommand}" CommandParameter="{Binding}" WidthRequest="80"/>
@@ -50,7 +50,7 @@
                        Text="{Binding NewMokki.Katuosoite}"/>
                 <Entry Placeholder="Hinta (€)"
                        Keyboard="Numeric"
-                       Text="{Binding UusiPalvelu.Hinta, Converter={StaticResource ZeroToEmptyStringConverter}}"/>
+                       Text="{Binding NewMokki.Hinta, Converter={StaticResource ZeroToEmptyStringConverter}}"/>
                 <Entry Placeholder="Kuvaus"
                        Text="{Binding NewMokki.Kuvaus}"/>
                 <Entry Placeholder="Henkilomaara"
