@@ -32,33 +32,39 @@
 
             <Label Text="Lisää uusi mökki:" FontAttributes="Bold"/>
 
-            <Label Text="Valitse alue:"/>
-            <Picker ItemsSource="{Binding AlueList}" SelectedItem="{Binding SelectedAlue}">
+        <StackLayout Padding="10">
+
+            <Picker x:Name="AluePicker"
+                    SelectedItem="{Binding SelectedAlue}"
+                    Title="Valitse Alue"
+                    ItemsSource="{Binding AlueList}">
                 <Picker.ItemDisplayBinding>
                     <Binding Path="alue_nimi"/>
                 </Picker.ItemDisplayBinding>
             </Picker>
 
-            <Label Text="Postinumero:"/>
-            <Entry Text="{Binding NewMokki.Postinro}" Keyboard="Numeric"/>
-            <Label Text="Mokkinimi:"/>
-            <Entry Text="{Binding NewMokki.Mokkinimi}"/>
-            <Label Text="Katuosoite:"/>
-            <Entry Text="{Binding NewMokki.Katuosoite}"/>
-            <Label Text="Hinta:"/>
-            <Entry Text="{Binding NewMokki.Hinta}" Keyboard="Numeric"/>
-            <Label Text="Kuvaus:"/>
-            <Entry Text="{Binding NewMokki.Kuvaus}"/>
-            <Label Text="Henkilömäärä:"/>
-            <Entry Text="{Binding NewMokki.Henkilomaara}" Keyboard="Numeric"/>
-            <Label Text="Varustelu:"/>
-            <Entry Text="{Binding NewMokki.Varustelu}"/>
+            <Entry Placeholder="Postinro"
+                   Text="{Binding NewMokki.Postinro}"/>
+            <Entry Placeholder="Mokkinimi"
+                   Text="{Binding NewMokki.Mokkinimi}"/>
+            <Entry Placeholder="Katuosoite"
+                   Text="{Binding NewMokki.Katuosoite}"/>
+            <Entry Placeholder="Hinta (€)"
+                   Keyboard="Numeric"
+                   Text="{Binding UusiPalvelu.Hinta, Converter={StaticResource ZeroToEmptyStringConverter}}" />
+
+            <Entry Placeholder="Kuvaus"
+                   Text="{Binding NewMokki.Kuvaus}"/>
+            <Entry Placeholder="Henkilomaara"
+                   Text="{Binding NewMokki.Henkilomaara}"
+                   Keyboard="Numeric"/>
+            <Entry Placeholder="Varustelu"
+                   Text="{Binding NewMokki.Varustelu}"/>
 
             <HorizontalStackLayout Spacing="8">
                 <Button Text="Tallenna muokkaus" Command="{Binding ConfirmUpdateMokkiCommand}" WidthRequest="150" IsVisible="{Binding IsEditing}"/>
                 <Button Text="Lisää mökki" Command="{Binding AddMokkiCommand}" WidthRequest="150" IsVisible="{Binding IsEditing2}"/>
-            </HorizontalStackLayout>
-
-        </StackLayout>
+        </HorizontalStackLayout>
+    </StackLayout>
     </ScrollView>
 </ContentPage>

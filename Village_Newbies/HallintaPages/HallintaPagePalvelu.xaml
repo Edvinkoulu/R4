@@ -51,15 +51,13 @@
             <Entry Placeholder="Palvelun kuvaus"
                    Text="{Binding UusiPalvelu.Kuvaus}" />
 
-            <Entry Placeholder="Hinta"
+            <Entry Placeholder="Hinta (€)"
                    Keyboard="Numeric"
-                   Text="{Binding UusiPalvelu.Hinta}" 
-                   ToolTipProperties.Text = "Hinta"/>
+                   Text="{Binding UusiPalvelu.Hinta, Converter={StaticResource ZeroToEmptyStringConverter}}" />
 
             <Entry Placeholder="ALV (%)"
                    Keyboard="Numeric"
-                   Text="{Binding UusiPalvelu.Alv}"
-                   ToolTipProperties.Text = "ALV (%)" />
+                   Text="{Binding UusiPalvelu.Alv, Converter={StaticResource ZeroToEmptyStringConverter}}" />
 
             <!--ALUEPICKER!!!!!!!-->
             <Picker x:Name="AluePicker"

@@ -138,6 +138,7 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
             if (vahvistus)
             {
                 await SuoritaKomento("DELETE FROM lasku WHERE lasku_id = @laskuId", ("@laskuId", id));
+                await Application.Current.MainPage.DisplayAlert("Lasku poistettu", $"Laskun ID: {id}", "OK");
             }
         }
     }

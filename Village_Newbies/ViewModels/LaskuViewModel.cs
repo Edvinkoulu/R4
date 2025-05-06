@@ -547,7 +547,6 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         try
         {
             await _laskuDb.Poista(lasku.lasku_id);
-            ShowAlert("Lasku poistettu", "");
             await LoadData();
         }
         catch (Exception ex)
