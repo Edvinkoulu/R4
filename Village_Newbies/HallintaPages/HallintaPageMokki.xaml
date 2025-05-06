@@ -43,21 +43,28 @@
                 </Picker>
 
                 <Entry Placeholder="Postinro"
-                       Text="{Binding NewMokki.Postinro}"/>
+                       Text="{Binding NewMokki.Postinro}" IsVisible="{Binding IsEditing}"/>
+
+                <Entry Placeholder="Postinumero (esim. 00100)"
+                        Keyboard="Numeric"
+                        Text="{Binding PostiVM.Postinumero}" IsVisible="{Binding IsEditing2}"/>
+                <Entry Placeholder="Toimipaikka (kaupunki)"
+                        Text="{Binding PostiVM.Toimipaikka}" IsVisible="{Binding IsEditing2}"/>
+
                 <Entry Placeholder="Mokkinimi"
-                       Text="{Binding NewMokki.Mokkinimi}"/>
+                        Text="{Binding NewMokki.Mokkinimi}"/>
                 <Entry Placeholder="Katuosoite"
-                       Text="{Binding NewMokki.Katuosoite}"/>
+                        Text="{Binding NewMokki.Katuosoite}"/>
                 <Entry Placeholder="Hinta (€)"
-                       Keyboard="Numeric"
-                       Text="{Binding NewMokki.Hinta, Converter={StaticResource ZeroToEmptyStringConverter}}"/>
+                        Keyboard="Numeric"
+                        Text="{Binding NewMokki.Hinta, Converter={StaticResource ZeroToEmptyStringConverter}}"/>
                 <Entry Placeholder="Kuvaus"
-                       Text="{Binding NewMokki.Kuvaus}"/>
+                        Text="{Binding NewMokki.Kuvaus}"/>
                 <Entry Placeholder="Henkilomaara"
-                       Text="{Binding NewMokki.Henkilomaara}"
-                       Keyboard="Numeric"/>
+                        Text="{Binding NewMokki.Henkilomaara}"
+                        Keyboard="Numeric"/>
                 <Entry Placeholder="Varustelu"
-                       Text="{Binding NewMokki.Varustelu}"/>
+                        Text="{Binding NewMokki.Varustelu}"/>
 
                 <HorizontalStackLayout Spacing="8">
                     <Button Text="Tallenna muokkaus" Command="{Binding ConfirmUpdateMokkiCommand}" WidthRequest="150" IsVisible="{Binding IsEditing}"/>

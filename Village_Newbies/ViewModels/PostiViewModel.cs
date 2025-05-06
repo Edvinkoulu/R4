@@ -54,7 +54,7 @@ public class PostiViewModel : INotifyPropertyChanged
     private bool CanExecuteTallenna()
         => !string.IsNullOrWhiteSpace(Postinumero) && !string.IsNullOrWhiteSpace(Toimipaikka);
 
-    private async Task TallennaAsync()
+    public async Task TallennaAsync()
     {
         var ok = await _service.LisaaTaiPaivitaAsync(new Posti
         {
@@ -66,9 +66,6 @@ public class PostiViewModel : INotifyPropertyChanged
             ok ? "Tallennettu" : "Virhe",
             ok ? "Postinumero lisättiin / päivitettiin." : "Tallennus epäonnistui.",
             "OK");
-
-        Postinumero = string.Empty;
-        Toimipaikka = string.Empty;
     }
 
     #region INotifyPropertyChanged

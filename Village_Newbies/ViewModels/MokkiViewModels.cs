@@ -6,6 +6,7 @@ using Village_Newbies.Services;
 
 public class MokkiViewModel : BindableObject
 {
+    public PostiViewModel PostiVM { get; set; }
     private readonly MokkiDatabaseService _mokkiDatabaseService;
     private ObservableCollection<Mokki> _mokkis;
     private ObservableCollection<Alue> _alueList;
@@ -91,7 +92,6 @@ public class MokkiViewModel : BindableObject
         }
     }
 
-
     public ICommand AddMokkiCommand { get; }
     public ICommand DeleteMokkiCommand { get; }
     public ICommand LoadMokkiForEditCommand { get; }
@@ -99,6 +99,19 @@ public class MokkiViewModel : BindableObject
 
     public MokkiViewModel()
     {
+        var postiService = new PostiDatabaseService(); // or however your actual implementation is named
+        PostiVM = new PostiViewModel(postiService);
+
+    PostiVM.PropertyChanged += (s, e) =>
+    {
+        if (e.PropertyName == nameof(PostiViewModel.Postinumero))
+        {
+            if (NewMokki != null)
+                NewMokki.Postinro = PostiVM.Postinumero;
+
+        }
+    };
+
         _mokkiDatabaseService = new MokkiDatabaseService(); // Initialize the service
         NewMokki = new Mokki(); // Create a new instance of Mokki
 
@@ -129,33 +142,45 @@ public class MokkiViewModel : BindableObject
         }
 
     private async Task AddMokkiAsync()
+{
+    // Try saving postal info first
+    await PostiVM.TallennaAsync();
+
+    if (NewMokki == null)
     {
-        if (NewMokki == null)
-            return;
-
-        // You can add validation here before sending data to the service
-        if (string.IsNullOrEmpty(NewMokki.Postinro) || string.IsNullOrEmpty(NewMokki.Mokkinimi))
-        {
-            // Add some user feedback here (e.g., show an alert)
-            return;
-        }
-
-        // Call the service method to insert the new Mokki
-        int rowsAffected = await _mokkiDatabaseService.CreateMokkiAsync(NewMokki);
-
-        // Provide feedback to the user about success or failure
-        if (rowsAffected > 0)
-        {
-            // Successfully added
-            NewMokki = new Mokki(); // Reset the form
-            OnPropertyChanged(nameof(NewMokki));
-        }
-        else
-        {
-            // Error handling: show an alert, log, etc.
-        }
-        LoadMokkis();
+        await Shell.Current.DisplayAlert("Virhe", "Mökin tiedot puuttuvat.", "OK");
+        return;
     }
+    // Validate required fields
+    if (string.IsNullOrEmpty(NewMokki.Postinro))
+    {
+        await Shell.Current.DisplayAlert("Virhe", "Postinumero puuttuu.", "OK");
+        return;
+    }
+
+    if (string.IsNullOrWhiteSpace(NewMokki.Mokkinimi))
+    {
+        await Shell.Current.DisplayAlert("Virhe", "Mökin nimi puuttuu.", "OK");
+        return;
+    }
+
+    // Try saving the Mokki
+    int rowsAffected = await _mokkiDatabaseService.CreateMokkiAsync(NewMokki);
+
+    if (rowsAffected > 0)
+    {
+        await Shell.Current.DisplayAlert("Onnistui", "Mökki lisättiin onnistuneesti.", "OK");
+
+        NewMokki = new Mokki(); // Reset form
+        OnPropertyChanged(nameof(NewMokki));
+        LoadMokkis();           // Refresh list
+    }
+    else
+    {
+        await Shell.Current.DisplayAlert("Virhe", "Mökin lisääminen epäonnistui. Yritä uudelleen.", "OK");
+    }
+}
+
 
     private async Task DeleteMokkiAsync(Mokki mokki)
     {
