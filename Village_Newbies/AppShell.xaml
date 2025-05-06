@@ -6,29 +6,45 @@
     xmlns:local="clr-namespace:Village_Newbies"
     xmlns:views="clr-namespace:Village_Newbies.HallintaPages"
     Shell.FlyoutBehavior="Disabled"
+    Shell.BackgroundColor="#FF21213B"
     Title="Village_Newbies">
 
+    <Shell.Resources>
+    <Style TargetType="Shell">
+        <Setter Property="BackgroundColor" Value="#FF21213B" />
+        <Setter Property="TitleColor" Value="White" />
+        <Setter Property="ForegroundColor" Value="White" />
+    </Style>
+    </Shell.Resources>
+
+
     <ShellContent
-        Title="Home"
+        Title="Village Newbies"
+        Shell.BackgroundColor="#FF21213B"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 
-        <!--HallintaTab-->
-            <FlyoutItem Title="Hallinta">
-     <Tab Title="Hallinta">
-        <ShellContent Title="Mökit"
-                      Route="MokkiPage"
-                      ContentTemplate="{DataTemplate views:HallintaPageMokki}" />
-        <ShellContent Title="Alueet"
-                    Route="AluePage"
-                    ContentTemplate="{DataTemplate views:HallintaPageAlue}" />
-        <ShellContent Title="Laskut"
-                    Route="LaskuPage"
-                    ContentTemplate="{DataTemplate views:HallintaPageLasku}" />      
-        <ShellContent Title="Palvelut"
-                    Route="PalveluPage"
-                    ContentTemplate="{DataTemplate views:HallintaPagePalvelu}" />                  
-    </Tab>
-</FlyoutItem>
+    <!-- HallintaTab -->
+    <FlyoutItem Title="Hallinta"
+                Shell.BackgroundColor="#FF21213B">
+        <Tab Title="Hallinta">
+            <ShellContent Title="Mökit"
+                          Route="MokkiPage"
+                          Shell.BackgroundColor="#FF21213B"
+                          ContentTemplate="{DataTemplate views:HallintaPageMokki}" />
+            <ShellContent Title="Alueet"
+                          Route="AluePage"
+                          Shell.BackgroundColor="#FF21213B"
+                          ContentTemplate="{DataTemplate views:HallintaPageAlue}" />
+            <ShellContent Title="Laskut"
+                          Route="LaskuPage"
+                          Shell.BackgroundColor="#FF21213B"
+                          ContentTemplate="{DataTemplate views:HallintaPageLasku}" />
+            <ShellContent Title="Palvelut"
+                          Route="PalveluPage"
+                          Shell.BackgroundColor="#FF21213B"
+                          ContentTemplate="{DataTemplate views:HallintaPagePalvelu}" />
+        </Tab>
+    </FlyoutItem>
 
 </Shell>
