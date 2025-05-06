@@ -3,96 +3,53 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:Village_Newbies.ViewModels"
              x:Class="Village_Newbies.HallintaPages.HallintaPageMajoitusVaraus"
-             BackgroundColor="{DynamicResource PageBackgroundColor}"
-             Title="HallintaPageMajoitusVaraus">
+             Title="Majoitusvaraukset"
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
 
-    <!-- Bindataan ViewModel -->
     <ContentPage.BindingContext>
         <vm:MajoitusVarausViewModel />
     </ContentPage.BindingContext>
 
     <ScrollView Padding="20">
-        <StackLayout>
+        <StackLayout Spacing="15">
+            <Label Text="Majoitusvarausten hallinta" FontSize="24" HorizontalOptions="Center"/>
 
-            <!-- Otsikko -->
-            <VerticalStackLayout Padding="30" HorizontalOptions="Center">
-                <Label Text="Majoitusvarausten hallinta"
-                       FontSize="24"
-                       HorizontalOptions="Center"/>
-            </VerticalStackLayout>
+            <!-- VARAUSLOMAKE -->
+            <Label Text="Tee varaus:" FontAttributes="Bold"/>
+            <Frame Padding="10" BorderColor="Gray">
+                <StackLayout Spacing="8">
 
-            <!-- Hakuehdot -->
-            <Label Text="Suodata mökkejä:" FontSize="18" Margin="0,10,0,0"/>
-            <Frame Margin="5" Padding="10" BorderColor="Gray">
-                <StackLayout Spacing="10">
-                    <Picker x:Name="AreaPicker" Title="Valitse alue">
-                        <Picker.ItemsSource>
-                            <x:Array Type="{x:Type x:String}">
-                                <x:String>Kaikki</x:String>
-                                <x:String>Ruka</x:String>
-                                <x:String>Tahko</x:String>
-                                <x:String>Ylläs</x:String>
-                            </x:Array>
-                        </Picker.ItemsSource>
-                    </Picker>
+                    <Label Text="Valitse asiakas:"/>
+                    <Picker ItemsSource="{Binding Asiakkaat}" SelectedItem="{Binding ValittuAsiakas}" ItemDisplayBinding="{Binding kokoNimi}" />
 
-                    <DatePicker x:Name="StartDatePicker" />
-                    <DatePicker x:Name="EndDatePicker" />
+                    <Label Text="Valitse mökki:"/>
+                    <Picker ItemsSource="{Binding Mokit}" SelectedItem="{Binding ValittuMokki}" ItemDisplayBinding="{Binding Mokkinimi}" />
 
-                    <Label Text="Hintahaarukka:" />
-                    <HorizontalStackLayout>
-                        <Entry x:Name="MinPriceEntry" Placeholder="Min" Keyboard="Numeric" WidthRequest="100"/>
-                        <Entry x:Name="MaxPriceEntry" Placeholder="Max" Keyboard="Numeric" WidthRequest="100"/>
-                    </HorizontalStackLayout>
+                    <Label Text="Alkupäivä:"/>
+                    <DatePicker Date="{Binding ValittuVaraus.varattu_alkupvm}" />
 
-                    <CheckBox x:Name="OnlyAvailableCheckBox"/>
-                    <Label Text="Näytä vain vapaat mökit"/>
+                    <Label Text="Loppupäivä:"/>
+                    <DatePicker Date="{Binding ValittuVaraus.varattu_loppupvm}" />
 
-                    <Button Text="Hae mökit" Clicked="OnSearchClicked"/>
+                    <Button Text="Tallenna varaus" Command="{Binding LisaaVarausCommand}" BackgroundColor="DarkGreen" TextColor="White"/>
                 </StackLayout>
             </Frame>
 
-            <!-- Tee varaus -osio säilytetty ENTISENÄ -->
-            <Label Text="Tee varaus:" FontSize="18" Margin="0,10,0,0"/>
-            <Frame Margin="5" Padding="10" BorderColor="Gray">
-                <StackLayout Spacing="10">
-                    <Label Text="Asiakkaan nimi:"/>
-                    <Entry x:Name="CustomerNameEntry"/>
-
-                    <Label Text="Puhelin:"/>
-                    <Entry x:Name="PhoneEntry" Keyboard="Telephone"/>
-
-                    <Label Text="Sähköposti:"/>
-                    <Entry x:Name="EmailEntry" Keyboard="Email"/>
-
-                    <Label Text="Lisäpalvelut:"/>
-                    <Entry x:Name="ServicesEntry" Placeholder="Esim. porosafari, saunavuoro"/>
-
-                    <Button Text="Tallenna varaus"
-                            Clicked="OnSaveReservationClicked"
-                            BackgroundColor="DarkGreen"
-                            TextColor="White"/>
-                </StackLayout>
-            </Frame>
-
-            <!-- Varauslista + CRUD-napit -->
-            <Label Text="Varaukset:" FontSize="18" Margin="0,10,0,0" />
+            <!-- VARAUKSET -->
+            <Label Text="Varaukset:" FontAttributes="Bold"/>
             <CollectionView ItemsSource="{Binding Varaukset}" SelectedItem="{Binding ValittuVaraus}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Frame Margin="5" Padding="10" BorderColor="Gray">
-                            <StackLayout>
-                                <Label Text="{Binding varaus_id, StringFormat='ID: {0}'}" />
-                                <Label Text="{Binding asiakas_id, StringFormat='Asiakas ID: {0}'}" />
-                                <Label Text="{Binding mokki_id, StringFormat='Mökki ID: {0}'}" />
-                                <Label Text="{Binding varattu_pvm, StringFormat='Varattu: {0:dd.MM.yyyy}'}" />
-                                <Label Text="{Binding varattu_alkupvm, StringFormat='Alkupvm: {0:dd.MM.yyyy}'}" />
-                                <Label Text="{Binding varattu_loppupvm, StringFormat='Loppupvm: {0:dd.MM.yyyy}'}" />
-                                <HorizontalStackLayout>
-                                    <Button Text="Poista" 
-                                            Command="{Binding BindingContext.PoistaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" />
-                                    <Button Text="Muokkaa" 
-                                            Command="{Binding BindingContext.MuokkaaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" />
+                        <Frame Padding="10" BorderColor="Gray">
+                            <StackLayout Spacing="4">
+                                <Label Text="{Binding varaus_id, StringFormat='ID: {0}'}"/>
+                                <Label Text="{Binding AsiakasNimi, StringFormat='Asiakas: {0}'}"/>
+                                <Label Text="{Binding MokkiNimi, StringFormat='Mökki: {0}'}"/>
+                                <Label Text="{Binding varattu_alkupvm, StringFormat='Alku: {0:dd.MM.yyyy}'}"/>
+                                <Label Text="{Binding varattu_loppupvm, StringFormat='Loppu: {0:dd.MM.yyyy}'}"/>
+                                <HorizontalStackLayout Spacing="8">
+                                    <Button Text="Muokkaa" Command="{Binding BindingContext.MuokkaaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" />
+                                    <Button Text="Poista" Command="{Binding BindingContext.PoistaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" />
                                 </HorizontalStackLayout>
                             </StackLayout>
                         </Frame>
@@ -100,11 +57,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <!-- Lisää uusi varaus -nappi -->
-            <Button Text="Lisää uusi varaus"
-                    Command="{Binding LisaaVarausCommand}"
-                    BackgroundColor="LightGreen"
-                    Margin="0,10,0,0"/>
+            <Button Text="Lisää uusi varaus" Command="{Binding LisaaUusiVarausCommand}" BackgroundColor="LightGreen" WidthRequest="170"/>
         </StackLayout>
     </ScrollView>
 </ContentPage>

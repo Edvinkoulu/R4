@@ -1,41 +1,80 @@
-﻿namespace Village_Newbies;
-using DatabaseConnection;
+﻿using DatabaseConnection;
 using MySqlConnector;
+using Village_Newbies.Models;
+using Village_Newbies.Services;
+
+namespace Village_Newbies;
 
 public partial class MainPage : ContentPage
 {
-	public MainPage()
-	{
-		InitializeComponent();
-	}
+    private AsiakasDatabaseService asiakasService = new AsiakasDatabaseService();
 
-	private async void AsiakasVaraus(object sender, EventArgs e)
+    public MainPage()
     {
-        await Navigation.PushAsync(new AsiakasVarausPage());
+        InitializeComponent();
     }
 
-	private async void Hallinta(object sender, EventArgs e)
+    private void ToggleLomake(object sender, EventArgs e)
+    {
+        VarausLomake.IsVisible = !VarausLomake.IsVisible;
+    }
+
+    private async void TallennaVaraus(object sender, EventArgs e)
+    {
+        try
+        {
+            var uusiAsiakas = new Asiakas
+            {
+                etunimi = EtunimiEntry.Text,
+                sukunimi = SukunimiEntry.Text,
+                email = EmailEntry.Text,
+                puhelinnro = PuhelinEntry.Text,
+                lahiosoite = OsoiteEntry.Text,
+                postinro = PostinroEntry.Text
+            };
+
+            await asiakasService.Lisaa(uusiAsiakas);
+            await DisplayAlert("Onnistui", "Asiakas tallennettu!", "OK");
+
+            // Tyhjennä kentät
+            EtunimiEntry.Text = "";
+            SukunimiEntry.Text = "";
+            EmailEntry.Text = "";
+            PuhelinEntry.Text = "";
+            OsoiteEntry.Text = "";
+            PostinroEntry.Text = "";
+
+            VarausLomake.IsVisible = false;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Virhe", ex.Message, "OK");
+        }
+    }
+
+    private async void Hallinta(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new HallintaPage());
     }
-	private async void Raportointi(object sender, EventArgs e)
+
+    private async void Raportointi(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new RaportointiPage());
     }
-	
-	
-	private async void OnDatabaseClicked(object sender, EventArgs e)
-	{
-		DatabaseConnector dbc = new DatabaseConnector();
-		try
-		{
-			var conn = dbc._getConnection();
-			conn.Open();
-			await DisplayAlert("Onnistui", "Tietokanta yhteysaukesi", "OK");
-		}
-		catch (MySqlException ex)
-		{
-			await DisplayAlert("Failure", ex.Message, "OK");
-		}
-	}
+
+    private async void OnDatabaseClicked(object sender, EventArgs e)
+    {
+        DatabaseConnector dbc = new DatabaseConnector();
+        try
+        {
+            var conn = dbc._getConnection();
+            conn.Open();
+            await DisplayAlert("Onnistui", "Tietokanta yhteys aukesi", "OK");
+        }
+        catch (MySqlException ex)
+        {
+            await DisplayAlert("Failure", ex.Message, "OK");
+        }
+    }
 }
+

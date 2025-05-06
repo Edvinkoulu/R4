@@ -137,5 +137,12 @@ namespace Village_Newbies.Services
         return tulokset.ToList();
     }
 }
+// Tämä on lisäys: antaa ViewModelin odottaman metodin majoitusvarausten hallinnassa
+public async Task<List<Mokki>> HaeKaikki()
+{
+    var mokit = await GetAllMokkisAsync();
+    return mokit.ToList();
+}
+
     }
 }

@@ -1,80 +1,65 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:viewmodels="clr-namespace:Village_Newbies.ViewModels"
-    xmlns:models="clr-namespace:Village_Newbies.Models"
-    x:Class="Village_Newbies.HallintaPages.HallintaPageAsiakas"
-    x:DataType="viewmodels:AsiakasHallintaViewModel"
-    Title="Asiakkaat">
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:Village_Newbies.ViewModels"
+             xmlns:models="clr-namespace:Village_Newbies.Models"
+             x:Class="Village_Newbies.HallintaPages.HallintaPageAsiakas"
+             x:DataType="viewmodels:AsiakasHallintaViewModel"
+             Title="Asiakkaat">
 
-    <!-- 1) property-elementit -->
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Päivitä" Command="{Binding LataaCommand}" />
     </ContentPage.ToolbarItems>
 
-    <!-- 2) varsinainen sisältö -->
-    <ContentPage.Content>
-        <Grid Padding="10" ColumnSpacing="15"
-              RowDefinitions="Auto,* ,Auto">
+    <Grid Padding="10" ColumnSpacing="15" RowDefinitions="Auto,*,Auto">
+        
+        <SearchBar Grid.Row="0"
+                   Placeholder="Hae nimellä, puhelimella tai emailillä"
+                   Text="{Binding Hakusana}"
+                   SearchCommand="{Binding HaeCommand}" />
 
-            <!-- 🔍 Hakupalkki -->
-            <SearchBar Grid.Row="0"
-                       Placeholder="Hae nimellä, puhelimella tai emailillä"
-                       Text="{Binding Hakusana}"
-                       SearchCommand="{Binding HaeCommand}" />
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Asiakkaat}"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding Valittu, Mode=TwoWay}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Asiakas">
+                    <SwipeView>
+                        <Grid Padding="8" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="2*" />
+                            </Grid.ColumnDefinitions>
+                            <Label Text="{Binding etunimi}" FontAttributes="Bold" VerticalOptions="Center"/>
+                            <Label Text="{Binding sukunimi}" Grid.Column="1" VerticalOptions="Center"/>
+                            <Label Text="{Binding email}" Grid.Column="2" VerticalOptions="Center"/>
+                        </Grid>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
 
-            <!-- 📋 Asiakaslista -->
-            <CollectionView Grid.Row="1"
-                            ItemsSource="{Binding Asiakkaat}"
-                            SelectionMode="Single"
-                            SelectedItem="{Binding Valittu, Mode=TwoWay}"
-                            ItemSizingStrategy="MeasureFirstItem">
+        <VerticalStackLayout Grid.Row="2" Spacing="6" Padding="10">
+            <Label Text="Asiakkaan tiedot:" FontAttributes="Bold"/>
+            <Label Text="Postinumero:"/>
+            <Entry Text="{Binding Valittu.postinro}" Keyboard="Numeric"/>
+            <Label Text="Etunimi:"/>
+            <Entry Text="{Binding Valittu.etunimi}"/>
+            <Label Text="Sukunimi:"/>
+            <Entry Text="{Binding Valittu.sukunimi}"/>
+            <Label Text="Lähiosoite:"/>
+            <Entry Text="{Binding Valittu.lahiosoite}"/>
+            <Label Text="Sähköposti:"/>
+            <Entry Text="{Binding Valittu.email}" Keyboard="Email"/>
+            <Label Text="Puhelin:"/>
+            <Entry Text="{Binding Valittu.puhelinnro}" Keyboard="Telephone"/>
 
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:Asiakas">
-                        <SwipeView>
-                            <Grid Padding="8" ColumnSpacing="10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="2*" />
-                                </Grid.ColumnDefinitions>
-
-                                <Label Text="{Binding etunimi}"
-                                       FontAttributes="Bold"
-                                       VerticalOptions="Center" />
-
-                                <Label Text="{Binding sukunimi}"
-                                       Grid.Column="1"
-                                       VerticalOptions="Center" />
-
-                                <Label Text="{Binding email}"
-                                       Grid.Column="2"
-                                       VerticalOptions="Center" />
-                                       
-                            </Grid>
-                        </SwipeView>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-            <!-- 📝 Lomake -->
-            <VerticalStackLayout Grid.Row="2" Spacing="6">
-                <Entry Placeholder="Postinumero" Text="{Binding Valittu.postinro}" Keyboard="Numeric" />
-                <Entry Placeholder="Etunimi"     Text="{Binding Valittu.etunimi}" />
-                <Entry Placeholder="Sukunimi"    Text="{Binding Valittu.sukunimi}" />
-                <Entry Placeholder="Lähiosoite"  Text="{Binding Valittu.lahiosoite}" />
-                <Entry Placeholder="Sähköposti"  Text="{Binding Valittu.email}"      Keyboard="Email" />
-                <Entry Placeholder="Puhelin"     Text="{Binding Valittu.puhelinnro}" Keyboard="Telephone" />
-                
-
-                <HorizontalStackLayout Spacing="8">
-                    <Button Text="Uusi"     Command="{Binding UusiCommand}" />
-                    <Button Text="Tallenna" Command="{Binding TallennaCommand}" />
-                    <Button Text="Poista"   Command="{Binding PoistaCommand}" />
-                </HorizontalStackLayout>
-            </VerticalStackLayout>
-        </Grid>
-    </ContentPage.Content>
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Uusi" Command="{Binding UusiCommand}" WidthRequest="100"/>
+                <Button Text="Tallenna" Command="{Binding TallennaCommand}" WidthRequest="100"/>
+                <Button Text="Poista" Command="{Binding PoistaCommand}" WidthRequest="100"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
 </ContentPage>
