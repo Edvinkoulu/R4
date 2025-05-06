@@ -1,214 +1,103 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Village_Newbies.HallintaPages.HallintaPageLasku"
              xmlns:vm="clr-namespace:Village_Newbies.ViewModels"
              xmlns:behaviors="clr-namespace:Village_Newbies.Behaviors"
-             BackgroundColor="{DynamicResource PageBackgroundColor}"
-             Title="Laskujen Hallinta">
+             x:Class="Village_Newbies.HallintaPages.HallintaPageLasku"
+             Title="Laskujen Hallinta"
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
 
-       <ContentPage.BindingContext>
-              <vm:LaskuViewModel/>
-       </ContentPage.BindingContext>
+    <ContentPage.BindingContext>
+        <vm:LaskuViewModel/>
+    </ContentPage.BindingContext>
 
-       <ScrollView Padding="20">
-              <StackLayout>
-                     <VerticalStackLayout Padding="30"
-                                          HorizontalOptions="Center">
-                            <Label Text="Laskujen Hallinta"
-                                   FontSize="24"
-                                   HorizontalOptions="Center"/>
-                     </VerticalStackLayout>
+    <ScrollView Padding="20">
+        <StackLayout Spacing="15">
+            <Label Text="Laskujen Hallinta" FontSize="24" HorizontalOptions="Center"/>
 
-                     <!-- Elementti 1: Laskuje suodattimet -->
-                     <Frame Margin="5"
-                            Padding="10"
-                            BorderColor="Gray">
-                            <StackLayout Spacing="10">
-                                   <Label Text="{Binding Laskut.Count, StringFormat='Suodatettujen laskujen lukumäärä: {0}'}"
-                                          FontSize="18"
-                                          FontAttributes="Bold"
-                                          Margin="0,10,0,0"/>
-                                   <Picker ItemsSource="{Binding Alueet}"
-                                           SelectedItem="{Binding ValittuAlue}"
-                                           ItemDisplayBinding="{Binding alue_nimi}"
-                                           Title="Valitse alue"/>
+            <!-- Suodatus -->
+            <Frame Padding="10" BorderColor="Gray">
+                <StackLayout Spacing="10">
+                    <Label Text="Suodattimet:" FontAttributes="Bold"/>
 
-                                   <Picker ItemsSource="{Binding Mokit}"
-                                           SelectedItem="{Binding ValittuMokki}"
-                                           ItemDisplayBinding="{Binding Mokkinimi}"
-                                           Title="Valitse mökki"/>
+                    <Picker ItemsSource="{Binding Alueet}" SelectedItem="{Binding ValittuAlue}" ItemDisplayBinding="{Binding alue_nimi}" Title="Valitse alue"/>
+                    <Picker ItemsSource="{Binding Mokit}" SelectedItem="{Binding ValittuMokki}" ItemDisplayBinding="{Binding Mokkinimi}" Title="Valitse mökki"/>
+                    <Picker ItemsSource="{Binding Asiakkaat}" SelectedItem="{Binding ValittuAsiakas}" ItemDisplayBinding="{Binding kokoNimi}" Title="Valitse asiakas"/>
 
-                                   <Picker ItemsSource="{Binding Asiakkaat}"
-                                           SelectedItem="{Binding ValittuAsiakas, Mode=TwoWay}"
-                                           ItemDisplayBinding="{Binding kokoNimi}"
-                                           Title="Valitse asiakas"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Hae" Command="{Binding HaeSuodatetutLaskutCommand}" WidthRequest="120"/>
+                        <Button Text="Näytä maksamattomat" Command="{Binding SuodataMaksamattomatCommand}" WidthRequest="170"/>
+                        <Button Text="Tyhjennä valinnat" Command="{Binding TyhjennaValinnatCommand}" WidthRequest="150"/>
+                    </HorizontalStackLayout>
+                </StackLayout>
+            </Frame>
 
-                                   <Button Text="Hae suodatetut laskut"
-                                           Command="{Binding HaeSuodatetutLaskutCommand}"
-                                           BackgroundColor="LightBlue"
-                                           Margin="0,10,0,0"/>
-                                   <Button Text="Näytä kaikki maksamattomat"
-                                           Command="{Binding SuodataMaksamattomatCommand}"
-                                           BackgroundColor="LightBlue"
-                                           Margin="0,0,0,0"/>
-                                   <Button Text="Tyhjennä valinnat"
-                                           Command="{Binding TyhjennaValinnatCommand}"
-                                           Margin="0,10,0,0"/>
+            <!-- Muokkaus -->
+            <Label Text="Muokkaa laskua:" FontAttributes="Bold"/>
+            <Frame Padding="10" BorderColor="Gray">
+                <StackLayout Spacing="8">
+                    <Label Text="{Binding VarausAsiakas}"/>
+                    <Label Text="{Binding VarausMokki}"/>
+                    <Label Text="{Binding VarausPvm}"/>
 
+                    <Label Text="Majoitus (€):"/>
+                    <Entry Text="{Binding UusiSumma}" Keyboard="Numeric">
+                        <Entry.Behaviors>
+                            <behaviors:NumericValidationBehavior IsDouble="True"/>
+                        </Entry.Behaviors>
+                    </Entry>
+                    <Label Text="{Binding SummaVirhe}" TextColor="Red"/>
+
+                    <Label Text="ALV (%):"/>
+                    <Entry Text="{Binding UusiAlv}" Keyboard="Numeric">
+                        <Entry.Behaviors>
+                            <behaviors:NumericValidationBehavior IsDouble="True"/>
+                        </Entry.Behaviors>
+                    </Entry>
+                    <Label Text="{Binding AlvVirhe}" TextColor="Red"/>
+
+                    <HorizontalStackLayout>
+                        <CheckBox IsChecked="{Binding UusiMaksettu}"/>
+                        <Label Text="Maksettu" VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <Label Text="{Binding PalveluidenSummaIlmanVeroa, StringFormat='Lisäpalvelut: {0:C}'}"/>
+                    <Label Text="{Binding KokonaissummaVerojenKanssa, StringFormat='Kokonaissumma: {0:C}'}" FontAttributes="Bold"/>
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Tallenna muutokset" Command="{Binding TallennaLaskuCommand}" IsEnabled="{Binding CanSave}" IsVisible="{Binding IsEditing}" WidthRequest="160"/>
+                        <Button Text="Peruuta" Command="{Binding ClearValittuLaskuCommand}" IsVisible="{Binding IsEditing}" WidthRequest="100"/>
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Tulosta PDF" Command="{Binding TulostaLaskuCommand}" CommandParameter="{Binding .}" IsVisible="{Binding IsEditing}" WidthRequest="120"/>
+                        <Button Text="Lähetä sähköpostiin" Command="{Binding LahetaLaskuEmailillaCommand}" CommandParameter="{Binding .}" IsVisible="{Binding IsEditing}" WidthRequest="160"/>
+                    </HorizontalStackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- Lista -->
+            <Label Text="Kaikki laskut:" FontAttributes="Bold"/>
+            <CollectionView ItemsSource="{Binding Laskut}" SelectedItem="{Binding ValittuLasku}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" BorderColor="Gray">
+                            <StackLayout Spacing="5">
+                                <Label Text="{Binding lasku_id, StringFormat='Lasku ID: {0}'}"/>
+                                <Label Text="{Binding varaus_id, StringFormat='Varaus ID: {0}'}"/>
+                                <Label Text="{Binding AsiakkaanKokoNimi, StringFormat='Asiakas: {0}'}"/>
+                                <Label Text="{Binding summa, StringFormat='Summa: {0:C}'}"/>
+                                <Label Text="{Binding maksettu, StringFormat='Maksettu: {0}'}"/>
+                                <HorizontalStackLayout Spacing="8">
+                                    <Button Text="Valitse" Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=ValitseLaskuCommand}" CommandParameter="{Binding .}" WidthRequest="100"/>
+                                    <Button Text="Poista" Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=PoistaLaskuCommand}" CommandParameter="{Binding .}" WidthRequest="100"/>
+                                </HorizontalStackLayout>
                             </StackLayout>
-                     </Frame>
-                     <!-- Elementti 2: Laskun muokkaus näkymä, varmaan mukavampi toisena, jos laskuja on paljon -->
-                     <Label Text="Muokkaa laskua:"
-                            FontSize="18"
-                            Margin="0,10,0,0"/>
-                     <Frame Margin="5"
-                            Padding="10"
-                            BorderColor="Gray">
-                            <StackLayout Spacing="10">
-                                   <Label Text="Lasku"/>
-                                   <Label Text="{Binding VarausAsiakas}"
-                                          IsEnabled="False"
-                                          TextColor="Gray"/>
-                                   <Label Text="{Binding VarausMokki}"
-                                          IsEnabled="False"
-                                          TextColor="Gray"/>
-                                   <Label Text="{Binding VarausPvm}"
-                                          IsEnabled="False"
-                                          TextColor="Gray"/>
-                                   <Label Text="Majoitus (€):"/>
-                                   <Entry Placeholder="Syötä summa"
-                                          Text="{Binding UusiSumma}"
-                                          Keyboard="Numeric">
-                                          <Entry.Behaviors>
-                                                 <behaviors:NumericValidationBehavior IsDouble="True"/>
-                                          </Entry.Behaviors>
-                                   </Entry>
-                                   <Label Text="{Binding SummaVirhe}"
-                                          TextColor="Red"/>
-                                   <Label Text="ALV (%):"/>
-                                   <Entry Placeholder="Syötä ALV"
-                                          Text="{Binding UusiAlv}"
-                                          Keyboard="Numeric">
-                                          <Entry.Behaviors>
-                                                 <behaviors:NumericValidationBehavior IsDouble="True"/>
-                                          </Entry.Behaviors>
-                                   </Entry>
-                                   <Label Text="{Binding AlvVirhe}"
-                                          TextColor="Red"/>
-                                   <HorizontalStackLayout>
-                                          <CheckBox IsChecked="{Binding UusiMaksettu}"/>
-                                          <Label Text="Maksettu"
-                                                 VerticalOptions="Center"/>
-                                   </HorizontalStackLayout>
-                                   <Label Text="{Binding PalveluidenSummaIlmanVeroa, StringFormat='Lisäpalvelut (ilman ALV): {0:C}'}"/>
-                                   <Label Text="{Binding KokonaissummaVerojenKanssa, StringFormat='Kokonaissumma (sis. ALV): {0:C}'}"
-                                          FontAttributes="Bold"
-                                          FontSize="16"/>
-                                   <Grid ColumnDefinitions="*,*,*,*,*"
-                                         RowDefinitions="50,50"
-                                         ColumnSpacing="10"
-                                         RowSpacing="10">
-                                          <Button Grid.Column="0"
-                                                  Grid.Row="0"
-                                                  Text="Tulosta PDF"
-                                                  Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=TulostaLaskuCommand}"
-                                                  CommandParameter="{Binding .}"
-                                                  IsVisible="{Binding IsEditing}"/>
-                                          <Button Grid.Column="1"
-                                                  Grid.Row="0"
-                                                  Text="Lähetä sähköpostiin"
-                                                  Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=LahetaLaskuEmailillaCommand}"
-                                                  CommandParameter="{Binding .}"
-                                                  IsVisible="{Binding IsEditing}"/>
-                                          <Button Grid.Column="3"
-                                                  Grid.Row="0"
-                                                  Text="Tallenna muutokset"
-                                                  Command="{Binding TallennaLaskuCommand}"
-                                                  IsEnabled="{Binding CanSave}"
-                                                  IsVisible="{Binding IsEditing}"/>
-                                          <Button Grid.Column="4"
-                                                  Grid.Row="0"
-                                                  Text="Peruuta muokkaus"
-                                                  Command="{Binding ClearValittuLaskuCommand}"
-                                                  IsVisible="{Binding IsEditing}"/>
-                                          <Button Grid.Column="0"
-                                                  Grid.Row="1"
-                                                  Text="Tulosta maksumuistutus PDF"
-                                                  Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=TulostaMaksumuistutusCommand}"
-                                                  CommandParameter="{Binding .}"
-                                                  IsVisible="{Binding IsEditing}"/>
-                                          <Button Grid.Column="1"
-                                                  Grid.Row="1"
-                                                  Text="Lähetä maksumuistutus sähköpostiin"
-                                                  Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=LahetaMaksumuistutusEmailillaCommand}"
-                                                  CommandParameter="{Binding .}"
-                                                  IsVisible="{Binding IsEditing}"/>
-                                   </Grid>
-                            </StackLayout>
-                     </Frame>
-                     <!-- Elementti 3: Lista laskuista -->
-                     <Label Text="Laskut järjestelmässä:"
-                            FontSize="18"
-                            Margin="0,10,0,0"/>
-                     <CollectionView ItemsSource="{Binding Laskut}"
-                                     SelectedItem="{Binding ValittuLasku}">
-                            <CollectionView.ItemTemplate>
-                                   <DataTemplate>
-                                          <Frame Margin="5"
-                                                 Padding="10"
-                                                 BorderColor="LightGray">
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-                                                 <Grid ColumnSpacing="10">
-                                                        <Grid.ColumnDefinitions>
-                                                               <ColumnDefinition Width="Auto"/>
-                                                               <ColumnDefinition Width="2*"/>
-                                                               <ColumnDefinition Width="3*"/>
-                                                               <ColumnDefinition Width="4*"/>
-                                                               <ColumnDefinition Width="8*"/>
-                                                               <ColumnDefinition Width="3*"/>
-                                                               <ColumnDefinition Width="2*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <StackLayout Grid.Column="0">
-                                                               <Label Text="{Binding lasku_id, StringFormat='Lasku ID: {0}'}"
-                                                                      FontAttributes="Bold"/>
-                                                        </StackLayout>
-                                                        <StackLayout Grid.Column="1">
-                                                               <Label Text="{Binding varaus_id, StringFormat='Varauksen ID: {0}'}"/>
-                                                               <Label Text="{Binding summa, StringFormat='Summa: {0:C}'}"/>
-                                                               <Label Text="{Binding alv, StringFormat='ALV: {0}%'}"/>
-                                                               <Label Text="{Binding maksettu, StringFormat='Maksettu: {0}'}"/>
-                                                        </StackLayout>
-                                                        <StackLayout Grid.Column="2">
-                                                               <Label Text="{Binding AsiakasId, StringFormat='Asiakas ID: {0}'}"/>
-                                                               <Label Text="{Binding AsiakkaanKokoNimi, StringFormat='Nimi: {0}'}"/>
-                                                        </StackLayout>
-                                                        <StackLayout Grid.Column="3">
-                                                               <Label Text=""/>
-                                                               <Label Text="{Binding AsiakkaanOsoite, StringFormat='{0}'}"/>
-                                                               <Label Text="{Binding AsiakkaanEmail, StringFormat='{0}'}"/>
-                                                               <Label Text="{Binding AsiakkaanPuhNro, StringFormat='{0}'}"/>
-                                                        </StackLayout>
-                                                        <!-- Tähän tarvitaan lista kokonaissummista, jotta näkyy oikein.
-                                                        <StackLayout Grid.Column="4"
-                                                                     HorizontalOptions="Start">
-                                                               <Label Text="{Binding ViewModel.KokonaissummaVerojenKanssa, StringFormat='Yhteensä: {0:C}'}"
-                                                                      FontAttributes="Bold"
-                                                                      FontSize="14"/>
-                                                        </StackLayout> -->
-                                                        <Button Text="Valitse"
-                                                                Grid.Column="5"
-                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=ValitseLaskuCommand}"
-                                                                CommandParameter="{Binding .}"/>
-                                                        <Button Text="Poista järjestelmästä"
-                                                                Grid.Column="6"
-                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LaskuViewModel}}, Path=PoistaLaskuCommand}"
-                                                                CommandParameter="{Binding .}"/>
-                                                 </Grid>
-                                          </Frame>
-                                   </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                     </CollectionView>
-              </StackLayout>
-       </ScrollView>
+        </StackLayout>
+    </ScrollView>
 </ContentPage>

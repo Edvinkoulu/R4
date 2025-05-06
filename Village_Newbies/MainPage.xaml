@@ -1,44 +1,77 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Village_Newbies.MainPage">
+             x:Class="Village_Newbies.MainPage"
+             BackgroundColor="{StaticResource Secondary}">
 
     <ScrollView>
-        <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25">
-            <Image
-                Source="dotnet_bot.png"
-                HeightRequest="185"
-                Aspect="AspectFit"
-                SemanticProperties.Description="dot net bot in a hovercraft number nine"/>
+        <VerticalStackLayout Padding="30,0" Spacing="20" VerticalOptions="Center" HorizontalOptions="Center">
 
-            <Label
-                Text="Village Newbies"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1"/>
+            <Image Source="logo.png" HeightRequest="250" HorizontalOptions="Center" />
 
-            <Label
-                Text="Tervetuloa mökkien varausjärjästelmään"
-                Style="{StaticResource SubHeadline}"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"/>
+            <Label Text="Tervetuloa mökkien varausjärjestelmään!"
+                   Style="{StaticResource SubHeadline}"
+                   TextColor="White"
+                   FontAttributes="Bold"
+                   SemanticProperties.HeadingLevel="Level2" />
 
-            <Button Text="Asiakas varaus"
-                Clicked="AsiakasVaraus" />
-            
-            <Button Text="Hallinta"
-                Clicked="Hallinta" />
-            <Button Text="Raportointi"
-                Clicked="Raportointi"/>
+            <!-- Napit -->
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                <Button Text="Asiakas varaus"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}"
+                        WidthRequest="170"
+                        Clicked="ToggleLomake" />
+                <Button Text="Hallinta"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}"
+                        WidthRequest="170"
+                        Clicked="Hallinta" />
+            </HorizontalStackLayout>
 
-            <!-- Yhteystesti nappi -->
-            <Button
-                x:Name="DatabaseBtn"
-                Text="Testaa databasen toimivuus"
-                SemanticProperties.Hint="Connects to database"
-                Clicked="OnDatabaseClicked"
-                HorizontalOptions="Fill"/>
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                <Button Text="Raportointi"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}"
+                        WidthRequest="170"
+                        Clicked="Raportointi" />
+                <Button x:Name="DatabaseBtn"
+                        Text="Testaa database"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}"
+                        WidthRequest="170"
+                        Clicked="OnDatabaseClicked" />
+            </HorizontalStackLayout>
+
+            <!-- Varauslomake -->
+            <Frame x:Name="VarausLomake"
+                   Padding="20"
+                   BorderColor="Gray"
+                   IsVisible="False"
+                   HorizontalOptions="Center"
+                   WidthRequest="300"
+                   CornerRadius="12"
+                   HasShadow="True"
+                   BackgroundColor="{StaticResource Secondary}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Asiakasvaraus"
+                           FontSize="20"
+                           HorizontalOptions="Center"
+                           TextColor="{StaticResource Primary}" />
+
+                    <Entry x:Name="EtunimiEntry" Placeholder="Etunimi"/>
+                    <Entry x:Name="SukunimiEntry" Placeholder="Sukunimi"/>
+                    <Entry x:Name="EmailEntry" Placeholder="Email" Keyboard="Email"/>
+                    <Entry x:Name="PuhelinEntry" Placeholder="Puhelinnumero" Keyboard="Telephone"/>
+                    <Entry x:Name="OsoiteEntry" Placeholder="Osoite"/>
+                    <Entry x:Name="PostinroEntry" Placeholder="Postinumero"/>
+
+                    <Button Text="Tallenna varaus"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}"
+                            Clicked="TallennaVaraus"/>
+                </VerticalStackLayout>
+            </Frame>
 
         </VerticalStackLayout>
     </ScrollView>

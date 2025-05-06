@@ -3,9 +3,9 @@ using MySqlConnector; // Tuodaan MySqlConnector -kirjasto
 public class DatabaseConnector
 {
     private readonly string server = "localhost";
-    private readonly string port = "3306";
+    private readonly string port = "3307";
     private readonly string uid = "root";
-    private readonly string pwd = "Ruutti123"; //!!vaihda tähän oma salis
+    private readonly string pwd = "Ruutti"; //!!vaihda tähän oma salis
     private readonly string database = "vn";
     public DatabaseConnector()
     {
