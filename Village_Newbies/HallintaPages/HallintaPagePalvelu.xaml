@@ -7,11 +7,7 @@
 
     <ScrollView Padding="20">
         <StackLayout Spacing="15">
-            <!-- Otsikko -->
-            <VerticalStackLayout HorizontalOptions="Center">
-                <Label Text="Palveluiden Hallinta" FontSize="24"/>
-            </VerticalStackLayout>
-
+           
             <!-- Hakukenttä -->
             <HorizontalStackLayout>
                 <Label Text="Nykyiset palvelut" FontSize="15" Margin="0,50,20,0" HorizontalOptions="Start"/>
