@@ -6,16 +6,20 @@
              BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <ContentPage.BindingContext>
-        <vm:MajoitusVarausViewModel />
+        <vm:MajoitusVarausViewModel/>
     </ContentPage.BindingContext>
 
     <ScrollView Padding="20">
         <StackLayout Spacing="15">
-            <Label Text="Majoitusvarausten hallinta" FontSize="24" HorizontalOptions="Center"/>
+            <Label Text="Majoitusvarausten hallinta"
+                   FontSize="24"
+                   HorizontalOptions="Center"/>
 
             <!-- Varauslomake -->
-            <Label Text="Tee tai muokkaa varausta:" FontAttributes="Bold"/>
-            <Frame Padding="10" BorderColor="Gray">
+            <Label Text="Tee tai muokkaa varausta:"
+                   FontAttributes="Bold"/>
+            <Frame Padding="10"
+                   BorderColor="Gray">
                 <StackLayout Spacing="8">
                     <Label Text="Valitse asiakas:"/>
                     <Picker ItemsSource="{Binding Asiakkaat}"
@@ -28,24 +32,31 @@
                             ItemDisplayBinding="{Binding Mokkinimi}"/>
 
                     <Label Text="Alkupäivä:"/>
-                    <DatePicker Date="{Binding ValittuVaraus.varattu_alkupvm}"/>
+                    <DatePicker Date="{Binding ValittuAlkuPv, Mode=TwoWay}"/>
 
                     <Label Text="Loppupäivä:"/>
-                    <DatePicker Date="{Binding ValittuVaraus.varattu_loppupvm}"/>
+                    <DatePicker Date="{Binding ValittuLoppuPv, Mode=TwoWay}"/>
 
                     <HorizontalStackLayout>
-                        <Button Text="Tallenna uusi" Command="{Binding LisaaVarausCommand}" WidthRequest="150"/>
-                        <Button Text="Päivitä valittu" Command="{Binding PaivitaVarausCommand}" WidthRequest="150"/>
+                        <Button Text="Tallenna uusi"
+                                Command="{Binding LisaaVarausCommand}"
+                                WidthRequest="150"/>
+                        <Button Text="Päivitä valittu"
+                                Command="{Binding PaivitaVarausCommand}"
+                                WidthRequest="150"/>
                     </HorizontalStackLayout>
                 </StackLayout>
             </Frame>
 
             <!-- Varauslista -->
-            <Label Text="Varaukset:" FontAttributes="Bold"/>
-            <CollectionView ItemsSource="{Binding Varaukset}" SelectedItem="{Binding ValittuVaraus}">
+            <Label Text="Varaukset:"
+                   FontAttributes="Bold"/>
+            <CollectionView ItemsSource="{Binding Varaukset}"
+                            SelectedItem="{Binding ValittuVaraus}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Frame Padding="10" BorderColor="Gray">
+                        <Frame Padding="10"
+                               BorderColor="Gray">
                             <StackLayout Spacing="4">
                                 <Label Text="{Binding varaus_id, StringFormat='ID: {0}'}"/>
                                 <Label Text="{Binding asiakas_id, StringFormat='Asiakas ID: {0}'}"/>
@@ -54,7 +65,14 @@
                                 <Label Text="{Binding varattu_alkupvm, StringFormat='Alku: {0:dd.MM.yyyy}'}"/>
                                 <Label Text="{Binding varattu_loppupvm, StringFormat='Loppu: {0:dd.MM.yyyy}'}"/>
                                 <HorizontalStackLayout Spacing="8">
-                                    <Button Text="Poista" Command="{Binding BindingContext.PoistaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" WidthRequest="100"/>
+                                    <Button Text="Valitse"
+                                            Command="{Binding BindingContext.ValitseVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                            CommandParameter="{Binding}"
+                                            WidthRequest="100"/>
+                                    <Button Text="Poista"
+                                            Command="{Binding BindingContext.PoistaVarausCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                            CommandParameter="{Binding}"
+                                            WidthRequest="100"/>
                                 </HorizontalStackLayout>
                             </StackLayout>
                         </Frame>

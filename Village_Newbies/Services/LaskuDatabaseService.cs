@@ -8,7 +8,6 @@ using System.Data;
 
 public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 {
-    VarausDatabaseService varausService = new VarausDatabaseService();
     public LaskuDatabaseService() { }
     public LaskuDatabaseService(DatabaseConnector connection) : base(connection) { }
     // ===================== HAKU =======================

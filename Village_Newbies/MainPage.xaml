@@ -2,8 +2,8 @@
 <TabbedPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:views="clr-namespace:Village_Newbies.HallintaPages"
-            xmlns:local="clr-namespace:Village_Newbies"
-            x:Class="Village_Newbies.MainPage">
+            x:Class="Village_Newbies.MainPage"
+            Title="Etusivu">
 
     <!-- Etusivu Tab -->
     <ContentPage Title="Etusivu"
@@ -51,6 +51,28 @@
                         <Entry x:Name="OsoiteEntry" Placeholder="Osoite"/>
                         <Entry x:Name="PostinroEntry" Placeholder="Postinumero"/>
 
+                        <Picker x:Name="PalveluPicker"
+                        Title="Valitse palvelu"
+                        ItemsSource="{Binding Palvelut}"
+                        ItemDisplayBinding="{Binding Nimi}" />
+
+                        <!-- Lkm Entry -->
+                        <Entry x:Name="LkmEntry"
+                        Placeholder="osallistuja määrä"/>
+
+                        <Label Text="Valitse mökki:"/>
+                        <Picker x:Name="MokkiPicker"
+                            ItemsSource="{Binding Mokit}"
+                                SelectedItem="{Binding ValittuMokki, Mode=TwoWay}"
+                                ItemDisplayBinding="{Binding Mokkinimi}" />
+
+                        <Label Text="Alkupäivä:"/>
+                        <DatePicker Date="{Binding ValittuAlkuPv, Mode=TwoWay}"/>
+
+                        <Label Text="Loppupäivä:"/>
+                        <DatePicker Date="{Binding ValittuLoppuPv, Mode=TwoWay}"/>
+
+
                         <Button Text="Tallenna varaus"
                                 BackgroundColor="{StaticResource Primary}"
                                 TextColor="{StaticResource White}"
@@ -63,13 +85,13 @@
     </ContentPage>
 
     <!-- Hallinta-välilehdet -->
-    <local:RaportointiPage Title="Raportit" />
+    <views:RaportointiPage Title="Raportit" />
     <views:HallintaPageMokki Title="Mökit"/>
     <views:HallintaPageAsiakas Title="Asiakkaat"/>
     <views:HallintaPagePalvelu Title="Palvelut"/>
     <views:HallintaPageMajoitusVaraus Title="Majoitusvarausten hallinta"/>
     <views:HallintaPageLasku Title="Laskut"/>
     <views:HallintaPageAlue Title="Alueet"/>
-    
+
 
 </TabbedPage>
