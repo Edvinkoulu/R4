@@ -155,7 +155,7 @@ namespace Village_Newbies.Services
             // Poissulje nykyinen varaus päivitystilanteessa
             if (VarausId.HasValue)
             {
-                sql += " AND varaus_id != @currentVarausId";
+                sql += " AND varaus_id != @VarausId";
             }
             var parameters = new List<(string, object)>
             {
@@ -166,8 +166,8 @@ namespace Village_Newbies.Services
 
             if (VarausId.HasValue)
             {
-                sql += " AND varaus_id != @currentVarausId";
-                parameters.Add(("@currentVarausId", VarausId.Value));
+                sql += " AND varaus_id != @VarausId";
+                parameters.Add(("@VarausId", VarausId.Value));
             }
 
             // Suorita kysely
