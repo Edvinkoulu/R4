@@ -10,9 +10,9 @@ namespace Village_Newbies.ViewModels
 {
     public class MajoitusVarausViewModel : INotifyPropertyChanged
     {
-        private readonly VarausDatabaseService _varausService = new VarausDatabaseService();
-        private readonly MokkiDatabaseService _mokkiService = new MokkiDatabaseService();
-        private readonly AsiakasDatabaseService _asiakasService = new AsiakasDatabaseService();
+        private readonly VarausDatabaseService _varausService = new();
+        private readonly MokkiDatabaseService _mokkiService = new();
+        private readonly AsiakasDatabaseService _asiakasService = new();
 
         public ObservableCollection<Varaus> Varaukset { get; set; } = new();
         public ObservableCollection<Mokki> Mokit { get; set; } = new();
@@ -20,6 +20,15 @@ namespace Village_Newbies.ViewModels
 
         public ICommand LisaaVarausCommand { get; }
         public ICommand PoistaVarausCommand { get; }
+        public ICommand PaivitaVarausCommand { get; }
+
+        public MajoitusVarausViewModel()
+        {
+            LisaaVarausCommand = new Command(async () => await LisaaVaraus());
+            PoistaVarausCommand = new Command(async () => await PoistaVaraus());
+            PaivitaVarausCommand = new Command(async () => await PaivitaVaraus());
+            _ = LataaData();
+        }
 
         private Varaus? _valittuVaraus;
         public Varaus? ValittuVaraus
@@ -54,29 +63,18 @@ namespace Village_Newbies.ViewModels
             }
         }
 
-        public MajoitusVarausViewModel()
-        {
-            LisaaVarausCommand = new Command(async () => await LisaaVaraus());
-            PoistaVarausCommand = new Command(async () => await PoistaVaraus());
-
-            _ = LataaData();
-        }
-
         private async Task LataaData()
         {
-            var varaukset = await _varausService.HaeKaikki();
             Varaukset.Clear();
-            foreach (var v in varaukset)
+            foreach (var v in await _varausService.HaeKaikki())
                 Varaukset.Add(v);
 
-            var mokit = await _mokkiService.GetAllMokkisAsync();
             Mokit.Clear();
-            foreach (var m in mokit)
+            foreach (var m in await _mokkiService.GetAllMokkisAsync())
                 Mokit.Add(m);
 
-            var asiakkaat = await _asiakasService.HaeKaikki();
             Asiakkaat.Clear();
-            foreach (var a in asiakkaat)
+            foreach (var a in await _asiakasService.HaeKaikki())
                 Asiakkaat.Add(a);
         }
 
@@ -85,14 +83,29 @@ namespace Village_Newbies.ViewModels
             if (ValittuAsiakas == null || ValittuMokki == null)
                 return;
 
-            ValittuVaraus ??= new Varaus();
+            var uusi = new Varaus
+            {
+                asiakas_id = (uint)ValittuAsiakas.asiakas_id,
+                mokki_id = (uint)ValittuMokki.mokki_id,
+                varattu_pvm = DateTime.Now,
+                vahvistus_pvm = DateTime.Now,
+                varattu_alkupvm = ValittuVaraus?.varattu_alkupvm ?? DateTime.Now,
+                varattu_loppupvm = ValittuVaraus?.varattu_loppupvm ?? DateTime.Now.AddDays(1)
+            };
+
+            await _varausService.Lisaa(uusi);
+            await LataaData();
+        }
+
+        private async Task PaivitaVaraus()
+        {
+            if (ValittuVaraus == null || ValittuAsiakas == null || ValittuMokki == null)
+                return;
 
             ValittuVaraus.asiakas_id = (uint)ValittuAsiakas.asiakas_id;
             ValittuVaraus.mokki_id = (uint)ValittuMokki.mokki_id;
-            ValittuVaraus.varattu_pvm = DateTime.Now;
-            ValittuVaraus.vahvistus_pvm = DateTime.Now;
 
-            await _varausService.Lisaa(ValittuVaraus);
+            await _varausService.Muokkaa(ValittuVaraus);
             await LataaData();
         }
 
@@ -100,13 +113,13 @@ namespace Village_Newbies.ViewModels
         {
             if (ValittuVaraus != null)
             {
-                await _varausService.Poista((int)ValittuVaraus.varaus_id);  // castattu
+                await _varausService.Poista((int)ValittuVaraus.varaus_id);
                 await LataaData();
             }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        protected virtual void OnPropertyChanged(string propertyName)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
