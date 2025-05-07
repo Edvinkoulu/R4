@@ -54,10 +54,10 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         ValitseLaskuCommand = new Command<Lasku>(l => ValittuLasku = l);
         TyhjennaValinnatCommand = new Command(async () => await TyhjennaValinnat());
         SuodataMaksamattomatCommand = new Command(SuodataMaksamattomat);
-        TulostaLaskuCommand = new Command(async () => await KasitteleLasku(false, false));
-        LahetaLaskuEmailillaCommand = new Command(async () => await KasitteleLasku(false, true));
-        TulostaMaksumuistutusCommand = new Command(async () => await KasitteleLasku(true, false));
-        LahetaMaksumuistutusEmailillaCommand = new Command(async () => await KasitteleLasku(true, true));
+        TulostaLaskuCommand = new Command(async () => await KasitteleLasku(LahetaMaksumuistutus, false));
+        LahetaLaskuEmailillaCommand = new Command(async () => await KasitteleLasku(LahetaMaksumuistutus, true));
+        // TulostaMaksumuistutusCommand = new Command(async () => await KasitteleLasku(true, false));
+        // LahetaMaksumuistutusEmailillaCommand = new Command(async () => await KasitteleLasku(true, true));
     }
     // =========================================
     // ========= Propertyt: Valinnat =========== Nämä siis pitävät kirjaa mitä käyttäjä on valinnut käyttöliittymästä
@@ -196,6 +196,12 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
         get => _uusiMaksettu;
         set => SetProperty(ref _uusiMaksettu, value, () => OnkoMuutoksia = true);
     }
+    private bool _lahetaMaksumuistutus;
+    public bool LahetaMaksumuistutus
+    {
+        get => _lahetaMaksumuistutus;
+        set => SetProperty(ref _lahetaMaksumuistutus, value);
+    }
     private int _uusiVarausId;
     private double _uusiSumma;
     private double _uusiAlv;
@@ -298,8 +304,8 @@ public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
     public ICommand SuodataMaksamattomatCommand { get; private set; }
     public ICommand TulostaLaskuCommand { get; private set; }
     public ICommand LahetaLaskuEmailillaCommand { get; private set; }
-    public ICommand TulostaMaksumuistutusCommand { get; private set; }
-    public ICommand LahetaMaksumuistutusEmailillaCommand { get; private set; }
+    // public ICommand TulostaMaksumuistutusCommand { get; private set; }
+    // public ICommand LahetaMaksumuistutusEmailillaCommand { get; private set; }
     // =========================================
     // ========= Tietojen haku ================= Nämä metodit käyttää databaseservicejä tietojen hakemiseen
     // =========================================

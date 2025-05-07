@@ -99,27 +99,6 @@ public class AsiakasDatabaseService : DatabaseService, IAsiakasDatabaseService
         await SuoritaKomento(sql, ("@id", id));
     }
 
-    // ─────────────────────────  IDataHaku‑OVERRIDET ──────────────────
-    public override async Task<DataTable> HaeData(string sql, params (string, object)[] p)
-    {
-        using var conn = HaeYhteysTietokantaan();
-        using var cmd  = new MySqlCommand(sql, conn);
-        foreach (var (n, v) in p) cmd.Parameters.AddWithValue(n, v);
-
-        var table = new DataTable();
-        using var adapter = new MySqlDataAdapter(cmd);
-        await Task.Run(() => adapter.Fill(table));
-        return table;
-    }
-
-    public override async Task<int> SuoritaKomento(string sql, params (string, object)[] p)
-    {
-        using var conn = HaeYhteysTietokantaan();
-        using var cmd  = new MySqlCommand(sql, conn);
-        foreach (var (n, v) in p) cmd.Parameters.AddWithValue(n, v);
-        return await cmd.ExecuteNonQueryAsync();
-    }
-
     // ─────────────────────────  YKSITYISET APUT ──────────────────────
     private static Asiakas Map(DataRow r) => new Asiakas(
         (uint) r["asiakas_id"],

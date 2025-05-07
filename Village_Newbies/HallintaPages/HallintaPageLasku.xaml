@@ -71,7 +71,12 @@
 
                     <HorizontalStackLayout Spacing="8">
                         <Button Text="Tulosta PDF" Command="{Binding TulostaLaskuCommand}" CommandParameter="{Binding .}" IsVisible="{Binding IsEditing}" WidthRequest="120"/>
-                        <Button Text="Lähetä sähköpostiin" Command="{Binding LahetaLaskuEmailillaCommand}" CommandParameter="{Binding .}" IsVisible="{Binding IsEditing}" WidthRequest="160"/>
+                        <Button Text="Lähetä sähköpostiin" Command="{Binding LahetaLaskuEmailillaCommand}" CommandParameter="{Binding .}" IsVisible="{Binding IsEditing}" WidthRequest="160"/>                
+                    </HorizontalStackLayout>
+                    
+                    <HorizontalStackLayout Spacing="8">
+                        <CheckBox IsChecked="{Binding LahetaMaksumuistutus}"/>
+                        <Label Text="Tulosta maksumuistutus" VerticalOptions="Center"/>
                     </HorizontalStackLayout>
                 </StackLayout>
             </Frame>

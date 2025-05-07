@@ -1,5 +1,5 @@
 namespace Village_Newbies.Services;
-
+using System.Threading.Tasks;
 using Village_Newbies.Interfacet;
 using Village_Newbies.Models;
 using DatabaseConnection;
@@ -8,6 +8,9 @@ using System.Data;
 
 public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 {
+    // Majoittumisen hinta lasketaan laskun muodostuksen yhteydessä VarausDatabaseServicessä, Mökin hinta * majoitusVrk
+    // Näin Laskun hintaa voi muokata vapaasti muualla.
+    
     public LaskuDatabaseService() { }
     public LaskuDatabaseService(DatabaseConnector connection) : base(connection) { }
     // ===================== HAKU =======================
@@ -20,8 +23,16 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 
     public async Task<List<Lasku>> HaeKaikki()
     {
-        var data = await HaeData("SELECT lasku_id, varaus_id, summa, alv, maksettu FROM lasku");
-        return LuoLaskuLista(data);
+        await AvaaYhteys();
+        try
+        {
+            var data = await base.HaeData("SELECT lasku_id, varaus_id, summa, alv, maksettu FROM lasku");
+            return LuoLaskuLista(data);
+        }
+        finally
+        {
+            await SuljeYhteys();
+        }
     }
     public async Task<List<Lasku>> HaeSuodatetutLaskut(
         int? alueId = null, int? mokkiId = null, int? asiakasId = null,
@@ -78,6 +89,12 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
                 Convert.ToDouble(row["Hinta"]),
                 Convert.ToDouble(row["Alv"])
             )).ToList();
+    }
+    public async Task<Lasku?> HaeVarauksenLasku(uint varausId)
+    {
+        var sql = "SELECT lasku_id, varaus_id, summa, alv, maksettu FROM lasku WHERE varaus_id = @varausId LIMIT 1";
+        var data = await HaeData(sql, ("@varausId", varausId));
+        return data.Rows.Count > 0 ? LuoLaskuOlio(data.Rows[0]) : null;
     }
     // =============== READ UPDATE DELETE ===============
     public async Task Lisaa(Lasku lasku)

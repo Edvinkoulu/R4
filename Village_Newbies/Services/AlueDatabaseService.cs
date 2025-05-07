@@ -18,12 +18,20 @@ public class AlueDatabaseService : DatabaseService, IAlueDatabaseService
     public async Task<Alue> Hae(uint id)
     {
         string sql = "SELECT alue_id, nimi FROM alue WHERE alue_id = @alueId";
-        return await HaeYksi(sql, LuoAlueOlio, ("@alueId", id));
+        var data = await HaeData(sql, ("@alueId", (object)id));
+
+        if (data.Rows.Count > 0)
+        {
+            return LuoAlueOlio(data.Rows[0]);
+        }
+
+        throw new KeyNotFoundException($"Aluetta ID:llä {id} ei löytynyt.");
     }
     public async Task<List<Alue>> HaeKaikki()
     {
         string sql = "SELECT alue_id, nimi FROM alue";
-        return await HaeLista(sql, LuoAlueOlio);
+        var data = await HaeData(sql);
+        return data.AsEnumerable().Select(LuoAlueOlio).ToList();
     }
     public async Task Lisaa(Alue alue)
     {

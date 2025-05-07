@@ -64,8 +64,7 @@ namespace Village_Newbies.ViewModels
                 }
             }
         }
-
-
+        
         private Mokki? _valittuMokki;
         public Mokki? ValittuMokki
         {
@@ -200,11 +199,6 @@ namespace Village_Newbies.ViewModels
             try
             {
                 await _varausService.Poista((int)varaus.varaus_id);
-                await Application.Current.MainPage.DisplayAlert(
-                    "Poistettu",
-                    $"Varaus {varaus.varaus_id} poistettu.",
-                    "OK"
-                );
                 await LataaData();
             }
             catch (MySqlException ex) when (ex.Number == 1451)

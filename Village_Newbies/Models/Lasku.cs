@@ -34,6 +34,13 @@ public class Lasku
         _maksettu = maksettu;
         _alv = ARVONLISAVEROKANTA;
     }
+    public Lasku(uint varausid, double summa, bool maksettu = false)
+    {
+        _varausId = varausid;
+        _summa = summa;
+        _maksettu = maksettu;
+        _alv = ARVONLISAVEROKANTA;
+    }
     public Lasku(uint laskuid, uint varausid, double summa, double alv, bool maksettu = false)
     {
         _laskuId = laskuid;
