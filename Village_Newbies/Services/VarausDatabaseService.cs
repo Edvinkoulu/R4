@@ -3,7 +3,7 @@ using System.Diagnostics;
 using MySqlConnector;
 using Village_Newbies.Models;
 using DatabaseConnection;
-
+using Dapper;
 
 namespace Village_Newbies.Services
 {
@@ -27,27 +27,32 @@ namespace Village_Newbies.Services
             var data = await HaeData("SELECT * FROM varaus WHERE varaus_id = @id", ("@id", id));
             return data.Rows.Count > 0 ? LuoOlio(data.Rows[0]) : null;
         }
-
-        public async Task<uint> Lisaa(Varaus varaus)
+        public async Task Lisaa(Varaus varaus)
         {
-            // Päällekkäisyyden tarkistus
+            await LisaaVaraus(varaus, true);
+        }
+
+        public async Task<uint> Lisaa2(Varaus varaus)
+        {
+            return await LisaaVaraus(varaus, false);
+        }
+        private async Task<uint> LisaaVaraus(Varaus varaus, bool naytaIlmoitus)
+        {
             if (await OnkoVarausPaallekkain((int)varaus.mokki_id, varaus.varattu_alkupvm, varaus.varattu_loppupvm))
             {
                 await NaytaIlmoitus("Virhe lisättäessä varausta", "Mökki ei ollut vapaana valitulle ajankohdalle.");
-                return 0; // Palauta 0 virheen merkiksi
+                return 0;
             }
-
-            uint uusiVarausId = 0; // Alustetaan uuden varauksen ID
 
             try
             {
-                // Varauksen lisäys tietokantaan
-                var sqlInsert = @"INSERT INTO varaus
+                var sqlInsertAndGetId = @"INSERT INTO varaus
                                 (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm)
                                 VALUES
-                                (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm)";
+                                (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm);
+                                SELECT LAST_INSERT_ID();";
 
-                int muutetutRivit = await SuoritaKomento(sqlInsert,
+                var idData = await HaeData(sqlInsertAndGetId,
                     ("@asiakas_id", varaus.asiakas_id),
                     ("@mokki_id", varaus.mokki_id),
                     ("@varattu_pvm", varaus.varattu_pvm),
@@ -55,40 +60,27 @@ namespace Village_Newbies.Services
                     ("@varattu_alkupvm", varaus.varattu_alkupvm),
                     ("@varattu_loppupvm", varaus.varattu_loppupvm));
 
-                if (muutetutRivit > 0)
+                if (idData.Rows.Count > 0 && idData.Rows[0][0] != DBNull.Value)
                 {
-                    // Hakee viimeksi lisätyn rivin ID:n
-                    var idData = await HaeData("SELECT LAST_INSERT_ID();");
-                     if (idData.Rows.Count > 0 && idData.Rows[0][0] != DBNull.Value)
-                    {
-                         uusiVarausId = Convert.ToUInt32(idData.Rows[0][0]);
-                         varaus.varaus_id = uusiVarausId; // Päivitä varaus-olion ID
+                    uint uusiVarausId = Convert.ToUInt32(idData.Rows[0][0]);
+                    varaus.varaus_id = uusiVarausId;
 
-                        if (varaus.varaus_id > 0)
-                        {
-                            // 3. Laskun käsittely (luonti uudelle varaukselle)
-                            await KasitteleLaskuVaraukselle(varaus, true);
-                            return uusiVarausId; // Palauta uuden varauksen ID onnistuessa
-                        }
-                        else
-                        {
-                            Debug.WriteLine("VarausDatabaseService: Varauksen lisäys onnistui, mutta uusi varaus ID oli virheellinen (0). Laskua ei voitu luoda.");
-                            await NaytaIlmoitus("Virhe laskun luonnissa", $"Varaus (Asiakas: {varaus.asiakas_id}, Mökki: {varaus.mokki_id}) luotiin, mutta varaus ID oli virheellinen. Laskua ei voitu luoda automaattisesti.");
-                            return 0;
-                        }
+                    if (varaus.varaus_id > 0)
+                    {
+                        await KasitteleLaskuVaraukselle(varaus, true);
+                        return uusiVarausId;
                     }
                     else
                     {
-                         Debug.WriteLine("VarausDatabaseService: Varauksen lisäys onnistui, mutta uuden varaus ID:n haku epäonnistui.");
-                         await NaytaIlmoitus("Varaus lisätty osittain", $"Varaus (Asiakas: {varaus.asiakas_id}, Mökki: {varaus.mokki_id}) luotiin ajalle {varaus.varattu_alkupvm:d} - {varaus.varattu_loppupvm:d}, mutta sen ID:n haku epäonnistui. Laskua ei voitu luoda automaattisesti.");
-                         return 0;
+                        Debug.WriteLine("VarausDatabaseService: Varauksen lisäys onnistui, mutta uusi varaus ID oli virheellinen (0). Laskua ei voitu luoda.");
+                        await NaytaIlmoitus("Virhe laskun luonnissa", $"Varaus (Asiakas: {varaus.asiakas_id}, Mökki: {varaus.mokki_id}) luotiin, mutta varaus ID oli virheellinen. Laskua ei voitu luoda automaattisesti.");
+                        return 0;
                     }
                 }
                 else
                 {
-                    // Jos INSERT-komento ei vaikuttanut yhteenkään riviin.
-                    Debug.WriteLine("VarausDatabaseService: Varauksen lisäys ei vaikuttanut riveihin (0 riviä muutettu).");
-                    await NaytaIlmoitus("Huomautus", "Varausta ei lisätty. Tietokannassa ei tapahtunut muutoksia.");
+                    Debug.WriteLine("VarausDatabaseService: Varauksen lisäys onnistui, mutta uuden varaus ID:n haku epäonnistui.");
+                    await NaytaIlmoitus("Varaus lisätty osittain", $"Varaus (Asiakas: {varaus.asiakas_id}, Mökki: {varaus.mokki_id}) luotiin ajalle {varaus.varattu_alkupvm:d} - {varaus.varattu_loppupvm:d}, mutta sen ID:n haku epäonnistui. Laskua ei voitu luoda automaattisesti.");
                     return 0;
                 }
             }
@@ -100,7 +92,6 @@ namespace Village_Newbies.Services
             }
         }
 
-        // Varauksen muokkaus muokkaa myös siihen liitettyä laskua
         public async Task Muokkaa(Varaus varaus)
         {
             // 1. Päällekkäisyyden tarkistus
@@ -204,10 +195,10 @@ namespace Village_Newbies.Services
             loppuPvm = loppuPvm.Date;
 
             // Tarkista että päivämäärät ovat loogisia
-           /* if (loppuPvm <= alkuPvm)
+            if (loppuPvm <= alkuPvm)
             {
                 throw new ArgumentException("Loppupäivämäärän on oltava alkupäivämäärää myöhempi.");
-            }*/
+            }
 
             // SQL-kysely päällekkäisten varausten tarkistamiseen
             var sql = @"

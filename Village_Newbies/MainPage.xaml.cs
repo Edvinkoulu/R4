@@ -2,6 +2,7 @@
 using MySqlConnector; //jos tarviitestata databasea 
 using Village_Newbies.Models;
 using Village_Newbies.Services;
+using System.Diagnostics;
 
 namespace Village_Newbies;
 
@@ -11,57 +12,60 @@ public partial class MainPage : TabbedPage
     private PalveluDatabaseService _palveluService = new PalveluDatabaseService();
     private MokkiDatabaseService _mokkiService = new MokkiDatabaseService();
     private VarausDatabaseService _varausService = new VarausDatabaseService();
-    
+
     private Varauksen_palvelutDatabaseService _vpService = new();
 
     private DateTime _valittuAlkuPv;
-        public DateTime ValittuAlkuPv
+    public DateTime ValittuAlkuPv
+    {
+        get => _valittuAlkuPv;
+        set
         {
-            get => _valittuAlkuPv;
-            set
+            if (_valittuAlkuPv.Date != value.Date)
             {
-                if (_valittuAlkuPv.Date != value.Date)
-                {
-                    _valittuAlkuPv = value.Date;
-                    OnPropertyChanged(nameof(ValittuAlkuPv));
-                }
+                _valittuAlkuPv = value.Date;
+                OnPropertyChanged(nameof(ValittuAlkuPv));
             }
         }
+    }
 
-        private DateTime _valittuLoppuPv;
-        public DateTime ValittuLoppuPv
+    private DateTime _valittuLoppuPv;
+    public DateTime ValittuLoppuPv
+    {
+        get => _valittuLoppuPv;
+        set
         {
-            get => _valittuLoppuPv;
-            set
+            if (_valittuLoppuPv.Date != value.Date)
             {
-                if (_valittuLoppuPv.Date != value.Date)
-                {
-                    _valittuLoppuPv = value.Date;
-                    OnPropertyChanged(nameof(ValittuLoppuPv));
-                }
+                _valittuLoppuPv = value.Date;
+                OnPropertyChanged(nameof(ValittuLoppuPv));
             }
         }
+    }
     public MainPage()
     {
         InitializeComponent();
+        this.BindingContext = this;
         LoadPalvelut();
         LoadMokit();
+        ValittuAlkuPv = DateTime.Today;
+        ValittuLoppuPv = DateTime.Today.AddDays(1);
     }
 
     private async void LoadPalvelut()
-{
-    var palvelut = await _palveluService.GetAllPalvelutAsync();
-    PalveluPicker.ItemsSource = palvelut.ToList(); // Explicit IList
-    PalveluPicker.ItemDisplayBinding = new Binding("Nimi");
+    {
+        var palvelut = await _palveluService.GetAllPalvelutAsync();
+        PalveluPicker.ItemsSource = palvelut.ToList(); // Explicit IList
+        PalveluPicker.ItemDisplayBinding = new Binding("Nimi");
 
-}
+    }
 
     private async void LoadMokit()
-{
-    var mokit = await _mokkiService.GetAllMokkisAsync();
-    MokkiPicker.ItemsSource = mokit.ToList(); // Explicit IList
-    MokkiPicker.ItemDisplayBinding = new Binding("Mokkinimi");
-}
+    {
+        var mokit = await _mokkiService.GetAllMokkisAsync();
+        MokkiPicker.ItemsSource = mokit.ToList(); // Explicit IList
+        MokkiPicker.ItemDisplayBinding = new Binding("Mokkinimi");
+    }
 
 
 
@@ -103,35 +107,67 @@ public partial class MainPage : TabbedPage
                 varattu_loppupvm = ValittuLoppuPv
             };
 
-            uint varausId =  await _varausService.Lisaa(uusiVaraus);
+            uint varausId = await _varausService.Lisaa2(uusiVaraus);
 
-            if (int.TryParse(LkmEntry.Text, out int lkm) &&
-            PalveluPicker.SelectedItem is Palvelu selectedPalvelu)
+            if (varausId > 0) //Lisaa2 palauttaa 0 jos tulee virhe.
             {
-                var uusiVP = new VarauksenPalvelu
+                var selectedPalvelu = PalveluPicker.SelectedItem as Palvelu;
+
+                if (selectedPalvelu == null)
                 {
-                    VarausId = varausId,
-                    PalveluId = (uint)selectedPalvelu.palvelu_id,
-                    Lkm = lkm
-                };
+                    Debug.WriteLine("Palvelua ei valittu varaukselle. Varaus tallennettu ilman palvelua.");
+                }
+                else if (!int.TryParse(LkmEntry.Text, out int lkm) || lkm <= 0)
+                {
+                    await DisplayAlert("Huomautus", "Varauksen palvelun määrä oli virheellinen. Varaus tallennettu ilman palvelua.", "OK");
+                    Debug.WriteLine($"Varauksen palvelun määrä virheellinen: '{LkmEntry.Text}'");
+                }
+                else
+                {
+                    var uusiVP = new VarauksenPalvelu
+                    {
+                        VarausId = varausId,
+                        PalveluId = (uint)selectedPalvelu.palvelu_id,
+                        Lkm = lkm
+                    };
 
-                await _vpService.CreateAsync(uusiVP);
+                    int rowsAffectedVP = await _vpService.CreateAsync(uusiVP);
+
+                    if (rowsAffectedVP > 0)
+                    {
+                        Debug.WriteLine($"Varauksen palvelu (ID: {selectedPalvelu.palvelu_id}, Määrä: {lkm}) lisätty varaukseen ID: {varausId}.");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Varauksen palvelun (ID: {selectedPalvelu.palvelu_id}) lisäys varaukseen ID: {varausId} ei vaikuttanut riveihin.");
+                        await DisplayAlert("Huomautus", "Valittua palvelua ei voitu liittää varaukseen.", "OK");
+                    }
+                }
+
+                EtunimiEntry.Text = "";
+                SukunimiEntry.Text = "";
+                EmailEntry.Text = "";
+                PuhelinEntry.Text = "";
+                OsoiteEntry.Text = "";
+                PostinroEntry.Text = "";
+                PalveluPicker.SelectedIndex = -1;
+                LkmEntry.Text = "";
+
+                VarausLomake.IsVisible = false;
             }
-            await DisplayAlert("Onnistui", "Asiakas tallennettu!", "OK");
-
-            EtunimiEntry.Text = "";
-            SukunimiEntry.Text = "";
-            EmailEntry.Text = "";
-            PuhelinEntry.Text = "";
-            OsoiteEntry.Text = "";
-            PostinroEntry.Text = "";
-            PalveluPicker.SelectedIndex = -1;
-
-            VarausLomake.IsVisible = false;
+            else
+            {
+                Debug.WriteLine("Varauksen lisäys epäonnistui (ID 0). Palvelua ei tallennettu.");
+            }
+        }
+        catch (FormatException)
+        {
+            await DisplayAlert("Virhe syötteessä", "Määrä-kentän tulee olla numero.", "OK");
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Virhe", ex.Message, "OK");
+            Debug.WriteLine($"MainPage TallennaVaraus Exception: {ex.Message}");
+            await DisplayAlert("Virhe tallennuksessa", $"Varauksen tallennus epäonnistui: {ex.Message}", "OK");
         }
     }
     /* ONGELMIEN VARALTA TALLESSA
