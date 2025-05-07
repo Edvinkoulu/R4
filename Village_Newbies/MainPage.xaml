@@ -51,6 +51,22 @@
                         <Entry x:Name="OsoiteEntry" Placeholder="Osoite"/>
                         <Entry x:Name="PostinroEntry" Placeholder="Postinumero"/>
 
+                        <Picker x:Name="PalveluPicker"
+                        Title="Valitse palvelu"
+                        ItemsSource="{Binding Palvelut}"
+                        ItemDisplayBinding="{Binding Nimi}" />
+
+                        <!-- VarausId Entry -->
+                        <Entry x:Name="VarausIdEntry"
+                        Placeholder="Varaus ID"
+                        Keyboard="Numeric" />
+
+                        <!-- Lkm Entry -->
+                        <Entry x:Name="LkmEntry"
+                        Placeholder="Palvelun määrä"
+                        Keyboard="Numeric" />
+
+
                         <Button Text="Tallenna varaus"
                                 BackgroundColor="{StaticResource Primary}"
                                 TextColor="{StaticResource White}"

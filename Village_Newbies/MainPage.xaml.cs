@@ -8,11 +8,22 @@ namespace Village_Newbies;
 public partial class MainPage : TabbedPage
 {
     private AsiakasDatabaseService asiakasService = new AsiakasDatabaseService();
+    private PalveluDatabaseService _palveluService = new PalveluDatabaseService();
+    private Varauksen_palvelutDatabaseService _vpService = new();
 
     public MainPage()
     {
         InitializeComponent();
+        LoadPalvelut();
     }
+
+    private async void LoadPalvelut()
+{
+    var palvelut = await _palveluService.GetAllPalvelutAsync();
+    PalveluPicker.ItemsSource = palvelut.ToList(); // Explicit IList
+    PalveluPicker.ItemDisplayBinding = new Binding("Nimi");
+
+}
 
     private void ToggleLomake(object sender, EventArgs e)
     {
@@ -34,6 +45,20 @@ public partial class MainPage : TabbedPage
             };
 
             await asiakasService.Lisaa(uusiAsiakas);
+
+            if (uint.TryParse(VarausIdEntry.Text, out uint varausId) &&
+            int.TryParse(LkmEntry.Text, out int lkm) &&
+            PalveluPicker.SelectedItem is Palvelu selectedPalvelu)
+            {
+                var uusiVP = new VarauksenPalvelu
+                {
+                    VarausId = varausId,
+                    PalveluId = (uint)selectedPalvelu.palvelu_id,
+                    Lkm = lkm
+                };
+
+                await _vpService.CreateAsync(uusiVP);
+            }
             await DisplayAlert("Onnistui", "Asiakas tallennettu!", "OK");
 
             EtunimiEntry.Text = "";
@@ -42,6 +67,7 @@ public partial class MainPage : TabbedPage
             PuhelinEntry.Text = "";
             OsoiteEntry.Text = "";
             PostinroEntry.Text = "";
+            PalveluPicker.SelectedIndex = -1;
 
             VarausLomake.IsVisible = false;
         }
