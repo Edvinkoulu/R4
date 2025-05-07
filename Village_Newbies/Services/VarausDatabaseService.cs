@@ -29,14 +29,14 @@ namespace Village_Newbies.Services
         }
         public async Task Lisaa(Varaus varaus)
         {
-            await LisaaVaraus(varaus, true);
+            await LisaaVaraus(varaus);
         }
 
         public async Task<uint> Lisaa2(Varaus varaus)
         {
-            return await LisaaVaraus(varaus, false);
+            return await LisaaVaraus(varaus);
         }
-        private async Task<uint> LisaaVaraus(Varaus varaus, bool naytaIlmoitus)
+        private async Task<uint> LisaaVaraus(Varaus varaus)
         {
             if (await OnkoVarausPaallekkain((int)varaus.mokki_id, varaus.varattu_alkupvm, varaus.varattu_loppupvm))
             {
