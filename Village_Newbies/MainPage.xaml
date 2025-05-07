@@ -51,6 +51,29 @@
                         <Entry x:Name="OsoiteEntry" Placeholder="Osoite"/>
                         <Entry x:Name="PostinroEntry" Placeholder="Postinumero"/>
 
+                        <Picker x:Name="PalveluPicker"
+                        Title="Valitse palvelu"
+                        ItemsSource="{Binding Palvelut}"
+                        ItemDisplayBinding="{Binding Nimi}" />
+
+                        <!-- Lkm Entry -->
+                        <Entry x:Name="LkmEntry"
+                        Placeholder="osallistuja määrä"
+                        Keyboard="Numeric" />
+
+                        <Label Text="Valitse mökki:"/>
+                        <Picker x:Name="MokkiPicker"
+                            ItemsSource="{Binding Mokit}"
+                                SelectedItem="{Binding ValittuMokki, Mode=TwoWay}"
+                                ItemDisplayBinding="{Binding Mokkinimi}" />
+
+                        <Label Text="Alkupäivä:"/>
+                        <DatePicker Date="{Binding ValittuAlkuPv, Mode=TwoWay}"/>
+
+                        <Label Text="Loppupäivä:"/>
+                        <DatePicker Date="{Binding ValittuLoppuPv, Mode=TwoWay}"/>
+
+
                         <Button Text="Tallenna varaus"
                                 BackgroundColor="{StaticResource Primary}"
                                 TextColor="{StaticResource White}"

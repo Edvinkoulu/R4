@@ -28,67 +28,75 @@ namespace Village_Newbies.Services
             return data.Rows.Count > 0 ? LuoOlio(data.Rows[0]) : null;
         }
 
-        // Lisää varauksen ja luo myös uuden laskun
-        // Nyt ei tarvitse käsitellä laskuja muualla erikseen
-        public async Task Lisaa(Varaus varaus)
+        public async Task<uint> Lisaa(Varaus varaus)
         {
-            int muutetutRivit = 0;
+            // Päällekkäisyyden tarkistus
             if (await OnkoVarausPaallekkain((int)varaus.mokki_id, varaus.varattu_alkupvm, varaus.varattu_loppupvm))
             {
                 await NaytaIlmoitus("Virhe lisättäessä varausta", "Mökki ei ollut vapaana valitulle ajankohdalle.");
-                return;
+                return 0; // Palauta 0 virheen merkiksi
             }
+
+            uint uusiVarausId = 0; // Alustetaan uuden varauksen ID
+
             try
             {
                 // Varauksen lisäys tietokantaan
-                var sql = @"INSERT INTO varaus 
-                            (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm)
-                            VALUES 
-                            (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm)";
-                muutetutRivit = await SuoritaKomento(sql,
+                var sqlInsert = @"INSERT INTO varaus
+                                (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm)
+                                VALUES
+                                (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm)";
+
+                int muutetutRivit = await SuoritaKomento(sqlInsert,
                     ("@asiakas_id", varaus.asiakas_id),
                     ("@mokki_id", varaus.mokki_id),
                     ("@varattu_pvm", varaus.varattu_pvm),
                     ("@vahvistus_pvm", varaus.vahvistus_pvm ?? (object)DBNull.Value),
                     ("@varattu_alkupvm", varaus.varattu_alkupvm),
                     ("@varattu_loppupvm", varaus.varattu_loppupvm));
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"VarausDatabaseService: Varauksen lisäys epäonnistui (SuoritaKomento poikkeus): \n{ex.Message}");
-                await NaytaIlmoitus("Virhe", $"Varauksen tallennus epäonnistui: {ex.Message}");
-                return; // Kriittinen virhe, keskeytä suoritus
-            }
 
-            if (muutetutRivit > 0)
-            {
-                var idData = await HaeData("SELECT LAST_INSERT_ID();");
-                if (idData.Rows.Count > 0 && idData.Rows[0][0] != DBNull.Value)
+                if (muutetutRivit > 0)
                 {
-                    uint uusiVarausId = Convert.ToUInt32(idData.Rows[0][0]);
-                    varaus.varaus_id = uusiVarausId;
-
-                    if (varaus.varaus_id > 0)
+                    // Hakee viimeksi lisätyn rivin ID:n
+                    var idData = await HaeData("SELECT LAST_INSERT_ID();");
+                     if (idData.Rows.Count > 0 && idData.Rows[0][0] != DBNull.Value)
                     {
-                        // Laskun käsittely (luonti)
-                        await KasitteleLaskuVaraukselle(varaus, true);
+                         uusiVarausId = Convert.ToUInt32(idData.Rows[0][0]);
+                         varaus.varaus_id = uusiVarausId; // Päivitä varaus-olion ID
+
+                        if (varaus.varaus_id > 0)
+                        {
+                            // 3. Laskun käsittely (luonti uudelle varaukselle)
+                            await KasitteleLaskuVaraukselle(varaus, true);
+                            return uusiVarausId; // Palauta uuden varauksen ID onnistuessa
+                        }
+                        else
+                        {
+                            Debug.WriteLine("VarausDatabaseService: Varauksen lisäys onnistui, mutta uusi varaus ID oli virheellinen (0). Laskua ei voitu luoda.");
+                            await NaytaIlmoitus("Virhe laskun luonnissa", $"Varaus (Asiakas: {varaus.asiakas_id}, Mökki: {varaus.mokki_id}) luotiin, mutta varaus ID oli virheellinen. Laskua ei voitu luoda automaattisesti.");
+                            return 0;
+                        }
                     }
                     else
                     {
-                        Debug.WriteLine("VarausDatabaseService: Varauksen lisäys onnistui, mutta uusi varaus ID oli virheellinen (0). Laskua ei voitu luoda.");
-                        await NaytaIlmoitus("Virhe laskun luonnissa", $"Varaus (Asiakas: {varaus.asiakas_id}, Mökki: {varaus.mokki_id}) luotiin, mutta varaus ID oli virheellinen. Laskua ei voitu luoda automaattisesti.");
+                         Debug.WriteLine("VarausDatabaseService: Varauksen lisäys onnistui, mutta uuden varaus ID:n haku epäonnistui.");
+                         await NaytaIlmoitus("Varaus lisätty osittain", $"Varaus (Asiakas: {varaus.asiakas_id}, Mökki: {varaus.mokki_id}) luotiin ajalle {varaus.varattu_alkupvm:d} - {varaus.varattu_loppupvm:d}, mutta sen ID:n haku epäonnistui. Laskua ei voitu luoda automaattisesti.");
+                         return 0;
                     }
                 }
                 else
                 {
-                    Debug.WriteLine("VarausDatabaseService: Varauksen lisäys onnistui, mutta uuden varaus ID:n haku epäonnistui.");
-                    await NaytaIlmoitus("Varaus lisätty osittain", $"Varaus (Asiakas: {varaus.asiakas_id}, Mökki: {varaus.mokki_id}) luotiin ajalle {varaus.varattu_alkupvm:d} - {varaus.varattu_loppupvm:d}, mutta sen ID:n haku epäonnistui. Laskua ei voitu luoda automaattisesti.");
+                    // Jos INSERT-komento ei vaikuttanut yhteenkään riviin.
+                    Debug.WriteLine("VarausDatabaseService: Varauksen lisäys ei vaikuttanut riveihin (0 riviä muutettu).");
+                    await NaytaIlmoitus("Huomautus", "Varausta ei lisätty. Tietokannassa ei tapahtunut muutoksia.");
+                    return 0;
                 }
             }
-            else
+            catch (Exception ex)
             {
-                Debug.WriteLine("VarausDatabaseService: Varauksen lisäys ei vaikuttanut riveihin (0 riviä muutettu).");
-                await NaytaIlmoitus("Huomautus", "Varausta ei lisätty. Tietokannassa ei tapahtunut muutoksia.");
+                Debug.WriteLine($"VarausDatabaseService: Varauksen lisäys epäonnistui (poikkeus): \n{ex.Message}");
+                await NaytaIlmoitus("Virhe", $"Varauksen tallennus epäonnistui: {ex.Message}");
+                return 0;
             }
         }
 
@@ -196,10 +204,10 @@ namespace Village_Newbies.Services
             loppuPvm = loppuPvm.Date;
 
             // Tarkista että päivämäärät ovat loogisia
-            if (loppuPvm <= alkuPvm)
+           /* if (loppuPvm <= alkuPvm)
             {
                 throw new ArgumentException("Loppupäivämäärän on oltava alkupäivämäärää myöhempi.");
-            }
+            }*/
 
             // SQL-kysely päällekkäisten varausten tarkistamiseen
             var sql = @"
