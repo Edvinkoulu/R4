@@ -41,16 +41,11 @@
                         <Binding Path="alue_nimi"/>
                     </Picker.ItemDisplayBinding>
                 </Picker>
-
-                <Entry Placeholder="Postinro"
-                       Text="{Binding NewMokki.Postinro}" IsVisible="{Binding IsEditing}"/>
-
                 <Entry Placeholder="Postinumero (esim. 00100)"
                         Keyboard="Numeric"
-                        Text="{Binding PostiVM.Postinumero}" IsVisible="{Binding IsEditing2}"/>
+                        Text="{Binding PostiVM.Postinumero}"/>
                 <Entry Placeholder="Toimipaikka (kaupunki)"
-                        Text="{Binding PostiVM.Toimipaikka}" IsVisible="{Binding IsEditing2}"/>
-
+                        Text="{Binding PostiVM.Toimipaikka}"/>
                 <Entry Placeholder="Mokkinimi"
                         Text="{Binding NewMokki.Mokkinimi}"/>
                 <Entry Placeholder="Katuosoite"

@@ -139,6 +139,7 @@ public class MokkiViewModel : BindableObject
             var mokkis = await _mokkiDatabaseService.GetAllMokkisAsync();
             // Update the ObservableCollection to reflect the changes
             Mokkis = new ObservableCollection<Mokki>(mokkis);
+            await PostiVM.ClearFields();
         }
 
     private async Task AddMokkiAsync()
@@ -232,6 +233,7 @@ public class MokkiViewModel : BindableObject
     if (NewMokki == null || NewMokki.mokki_id <= 0)
         return;
 
+    await PostiVM.TallennaAsync();
     await _mokkiDatabaseService.UpdateMokkiAsync(NewMokki);
     LoadMokkis();
 

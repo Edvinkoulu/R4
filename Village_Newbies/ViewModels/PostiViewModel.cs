@@ -67,6 +67,11 @@ public class PostiViewModel : INotifyPropertyChanged
             ok ? "Postinumero lisättiin / päivitettiin." : "Tallennus epäonnistui.",
             "OK");
     }
+    public async Task ClearFields(){
+        Postinumero = string.Empty;
+        Toimipaikka = string.Empty;
+    }
+
 
     #region INotifyPropertyChanged
 
