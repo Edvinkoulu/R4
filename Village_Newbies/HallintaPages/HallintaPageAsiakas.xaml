@@ -11,14 +11,20 @@
         <ToolbarItem Text="Päivitä" Command="{Binding LataaCommand}" />
     </ContentPage.ToolbarItems>
 
-    <Grid Padding="10" ColumnSpacing="15" RowDefinitions="Auto,*,Auto">
-        
-        <SearchBar Grid.Row="0"
+    <!-- ❶ Kaksi saraketta: listalle ~60 % ja tieto‑paneelille ~40 % leveydestä -->
+    <Grid Padding="10"
+          ColumnSpacing="15"
+          RowDefinitions="Auto,*"
+          ColumnDefinitions="3*,2*">
+
+        <!-- ❷ Hakupalkki koko leveyteen -->
+        <SearchBar Grid.Row="0" Grid.ColumnSpan="2"
                    Placeholder="Hae nimellä, puhelimella tai emailillä"
                    Text="{Binding Hakusana}"
                    SearchCommand="{Binding HaeCommand}" />
 
-        <CollectionView Grid.Row="1"
+        <!-- ❸ Asiakaslista – saa koko korkeuden ja enemmistön leveydestä -->
+        <CollectionView Grid.Row="1" Grid.Column="0"
                         ItemsSource="{Binding Asiakkaat}"
                         SelectionMode="Single"
                         SelectedItem="{Binding Valittu, Mode=TwoWay}">
@@ -31,35 +37,59 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="2*" />
                             </Grid.ColumnDefinitions>
-                            <Label Text="{Binding etunimi}" FontAttributes="Bold" VerticalOptions="Center"/>
-                            <Label Text="{Binding sukunimi}" Grid.Column="1" VerticalOptions="Center"/>
-                            <Label Text="{Binding email}" Grid.Column="2" VerticalOptions="Center"/>
+                            <Label Text="{Binding etunimi}"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                            <Label Text="{Binding sukunimi}"
+                                   Grid.Column="1"
+                                   VerticalOptions="Center"/>
+                            <Label Text="{Binding email}"
+                                   Grid.Column="2"
+                                   VerticalOptions="Center"/>
                         </Grid>
                     </SwipeView>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <VerticalStackLayout Grid.Row="2" Spacing="6" Padding="10">
-            <Label Text="Asiakkaan tiedot:" FontAttributes="Bold"/>
-            <Label Text="Postinumero:"/>
-            <Entry Text="{Binding Valittu.postinro}" Keyboard="Numeric"/>
-            <Label Text="Etunimi:"/>
-            <Entry Text="{Binding Valittu.etunimi}"/>
-            <Label Text="Sukunimi:"/>
-            <Entry Text="{Binding Valittu.sukunimi}"/>
-            <Label Text="Lähiosoite:"/>
-            <Entry Text="{Binding Valittu.lahiosoite}"/>
-            <Label Text="Sähköposti:"/>
-            <Entry Text="{Binding Valittu.email}" Keyboard="Email"/>
-            <Label Text="Puhelin:"/>
-            <Entry Text="{Binding Valittu.puhelinnro}" Keyboard="Telephone"/>
+        <!-- ❹ Tiedot omassa ScrollView’ssa, jotta ne eivät venytä ruutua -->
+        <ScrollView Grid.Row="1" Grid.Column="1">
+            <VerticalStackLayout Spacing="6" Padding="10">
+                <Label Text="Asiakkaan tiedot:" FontAttributes="Bold"/>
 
-            <HorizontalStackLayout Spacing="8">
-                <Button Text="Uusi" Command="{Binding UusiCommand}" WidthRequest="100"/>
-                <Button Text="Tallenna" Command="{Binding TallennaCommand}" WidthRequest="100"/>
-                <Button Text="Poista" Command="{Binding PoistaCommand}" WidthRequest="100"/>
-            </HorizontalStackLayout>
-        </VerticalStackLayout>
+                <Label Text="Postinumero:"/>
+                <Entry Text="{Binding Valittu.postinro}" Keyboard="Numeric"/>
+
+                <Label Text="Toimipaikka (jos uusi postinumero):"/>
+                <Entry Text="{Binding UusiToimipaikka}"/>
+
+                <Label Text="Etunimi:"/>
+                <Entry Text="{Binding Valittu.etunimi}"/>
+
+                <Label Text="Sukunimi:"/>
+                <Entry Text="{Binding Valittu.sukunimi}"/>
+
+                <Label Text="Lähiosoite:"/>
+                <Entry Text="{Binding Valittu.lahiosoite}"/>
+
+                <Label Text="Sähköposti:"/>
+                <Entry Text="{Binding Valittu.email}" Keyboard="Email"/>
+
+                <Label Text="Puhelin:"/>
+                <Entry Text="{Binding Valittu.puhelinnro}" Keyboard="Telephone"/>
+
+                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                    <Button Text="Uusi"
+                            Command="{Binding UusiCommand}"
+                            WidthRequest="100"/>
+                    <Button Text="Tallenna"
+                            Command="{Binding TallennaCommand}"
+                            WidthRequest="100"/>
+                    <Button Text="Poista"
+                            Command="{Binding PoistaCommand}"
+                            WidthRequest="100"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>
