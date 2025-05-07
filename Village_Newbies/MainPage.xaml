@@ -69,7 +69,7 @@
     <views:HallintaPagePalvelu Title="Palvelut"/>
     <views:HallintaPageMajoitusVaraus Title="Majoitusvarausten hallinta"/>
     <views:HallintaPageLasku Title="Laskut"/>
-     <views:HallintaPageAlue Title="Alueet"/>
-    <views:HallintaPagePosti Title="Postinumerot"/>
+    <views:HallintaPageAlue Title="Alueet"/>
+    
 
 </TabbedPage>
