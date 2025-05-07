@@ -139,7 +139,6 @@ public class MokkiViewModel : BindableObject
             var mokkis = await _mokkiDatabaseService.GetAllMokkisAsync();
             // Update the ObservableCollection to reflect the changes
             Mokkis = new ObservableCollection<Mokki>(mokkis);
-            await PostiVM.ClearFields();
         }
 
     private async Task AddMokkiAsync()
@@ -173,6 +172,7 @@ public class MokkiViewModel : BindableObject
         await Shell.Current.DisplayAlert("Onnistui", "Mökki lisättiin onnistuneesti.", "OK");
 
         NewMokki = new Mokki(); // Reset form
+        await PostiVM.ClearFields();
         OnPropertyChanged(nameof(NewMokki));
         LoadMokkis();           // Refresh list
     }
