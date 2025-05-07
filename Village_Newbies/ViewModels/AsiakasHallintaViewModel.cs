@@ -17,7 +17,7 @@ public sealed class AsiakasHallintaViewModel : BindableObject
 {
     // ───── Kentät & ominaisuudet ────────────────────────────────────────────
     private readonly IAsiakasDatabaseService _db = new AsiakasDatabaseService();
-
+    private readonly IPostiDatabaseService _posti = new PostiDatabaseService();
     public ObservableCollection<Asiakas> Asiakkaat { get; } = new();
 
     private Asiakas _valittu = new();      // kaksi-suuntainen sidonta
@@ -32,7 +32,19 @@ public sealed class AsiakasHallintaViewModel : BindableObject
         get => _hakusana;
         set { _hakusana = value; OnPropertyChanged(); }
     }
-
+    private string _uusiToimipaikka = string.Empty;
+    public string UusiToimipaikka
+    {
+    get => _uusiToimipaikka;
+    set { _uusiToimipaikka = value; OnPropertyChanged(); }
+    }
+    private List<Posti> _postiCache = new();
+public bool NäytäToimipaikka => !_postiCache.Any(p => p.Postinumero == Valittu.postinro);
+private async Task LataaPostitAsync()
+{
+    _postiCache = await _posti.HaeKaikkiAsync();
+    OnPropertyChanged(nameof(NäytäToimipaikka));
+}
     // ───── Komennot ─────────────────────────────────────────────────────────
     public ICommand LataaCommand     { get; }
     public ICommand UusiCommand      { get; }
@@ -66,21 +78,45 @@ public sealed class AsiakasHallintaViewModel : BindableObject
         foreach (var a in await _db.HaeKaikki())
             Asiakkaat.Add(a);
     }
-
-    private async Task TallennaAsync()
+    
+    async Task TallennaAsync()
 {
     try
     {
         SyoteValidointi.TarkistaPostinumero(Valittu.postinro);
-        if (Valittu.asiakas_id == 0)       // uusi
+
+        // 1)  Lisätään puuttuva postinumero, jos tarpeen
+        if (!_postiCache.Any(p => p.Postinumero == Valittu.postinro))
+        {
+            // varmistetaan että käyttäjä antoi toimipaikan
+            if (string.IsNullOrWhiteSpace(UusiToimipaikka))
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "Puuttuva tieto",
+                    "Anna toimipaikka uudelle postinumerolle.",
+                    "OK");
+                return;
+            }
+
+            await _posti.LisaaTaiPaivitaAsync(
+                new Posti { Postinumero = Valittu.postinro, Toimipaikka = UusiToimipaikka });
+
+            // päivitetään välimuisti, ettei hetkeä myöhemmin näy puuttuvaksi
+            _postiCache.Add(new Posti { Postinumero = Valittu.postinro, Toimipaikka = UusiToimipaikka });
+        }
+
+        // 2)  Asiakkaan lisäys / muokkaus
+        if (Valittu.asiakas_id == 0)
             await _db.Lisaa(Valittu);
-        else                               // muokkaus
+        else
             await _db.Muokkaa(Valittu);
 
-        await HaeAsync();                  // päivitä lista haun kautta
-        Valittu = new Asiakas();           // tyhjennä lomake
+        // 3)  Siivoa lomake
+        await HaeAsync();
+        Valittu = new Asiakas();
+        UusiToimipaikka = string.Empty;
     }
-    catch (MySqlException ex) when (ex.Number == 1062)   // Duplicate entry
+    catch (MySqlException ex) when (ex.Number == 1062)
     {
         await Application.Current.MainPage.DisplayAlert(
             "Virhe", "Sähköposti on jo käytössä.", "OK");

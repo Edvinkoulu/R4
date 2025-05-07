@@ -1,11 +1,11 @@
-﻿using DatabaseConnection;
-using MySqlConnector;
+﻿using DatabaseConnection; //jos tarviitestata databasea 
+using MySqlConnector; //jos tarviitestata databasea 
 using Village_Newbies.Models;
 using Village_Newbies.Services;
 
 namespace Village_Newbies;
 
-public partial class MainPage : ContentPage
+public partial class MainPage : TabbedPage
 {
     private AsiakasDatabaseService asiakasService = new AsiakasDatabaseService();
 
@@ -36,7 +36,6 @@ public partial class MainPage : ContentPage
             await asiakasService.Lisaa(uusiAsiakas);
             await DisplayAlert("Onnistui", "Asiakas tallennettu!", "OK");
 
-            // Tyhjennä kentät
             EtunimiEntry.Text = "";
             SukunimiEntry.Text = "";
             EmailEntry.Text = "";
@@ -51,17 +50,7 @@ public partial class MainPage : ContentPage
             await DisplayAlert("Virhe", ex.Message, "OK");
         }
     }
-
-    private async void Hallinta(object sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new HallintaPage());
-    }
-
-    private async void Raportointi(object sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new RaportointiPage());
-    }
-
+    /* ONGELMIEN VARALTA TALLESSA
     private async void OnDatabaseClicked(object sender, EventArgs e)
     {
         DatabaseConnector dbc = new DatabaseConnector();
@@ -75,6 +64,5 @@ public partial class MainPage : ContentPage
         {
             await DisplayAlert("Failure", ex.Message, "OK");
         }
-    }
+    }*/
 }
-

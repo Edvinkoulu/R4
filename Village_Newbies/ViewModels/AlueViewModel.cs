@@ -50,7 +50,7 @@ public class AlueViewModel : INotifyPropertyChanged
     {
         await LoadAlueet();
     }
-
+    
     public Alue SelectedAlue
     {
         get => _valittuAlue;

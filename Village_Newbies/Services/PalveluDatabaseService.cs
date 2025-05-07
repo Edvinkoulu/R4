@@ -1,8 +1,6 @@
-using DatabaseConnection;  // Importoi DatabaseConnection namespace
+using DatabaseConnection;
 using Village_Newbies.Models;
 using Dapper;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Village_Newbies.Services
 {
@@ -23,19 +21,19 @@ namespace Village_Newbies.Services
         }
 
         // Create: Lisää uusi palvelu
-       public async Task<int> CreatePalveluAsync(Palvelu palvelu)
-{
-    using (var conn = _databaseConnector._getConnection())
-    {
-        await conn.OpenAsync();
+        public async Task<int> CreatePalveluAsync(Palvelu palvelu)
+        {
+            using (var conn = _databaseConnector._getConnection())
+            {
+                await conn.OpenAsync();
 
-        string query = @"INSERT INTO palvelu (alue_id, nimi, kuvaus, hinta, alv)
+                string query = @"INSERT INTO palvelu (alue_id, nimi, kuvaus, hinta, alv)
                          VALUES (@AlueId, @Nimi, @Kuvaus, @Hinta, @Alv)";
 
-        // Parametrin nimeä vastaa luokan kenttä.
-        return await conn.ExecuteAsync(query, new { AlueId = palvelu.alue_id, Nimi = palvelu.Nimi, Kuvaus = palvelu.Kuvaus, Hinta = palvelu.Hinta, Alv = palvelu.Alv });
-    }
-}
+                // Parametrin nimeä vastaa luokan kenttä.
+                return await conn.ExecuteAsync(query, new { AlueId = palvelu.alue_id, Nimi = palvelu.Nimi, Kuvaus = palvelu.Kuvaus, Hinta = palvelu.Hinta, Alv = palvelu.Alv });
+            }
+        }
 
         // Read: Hae kaikki palvelut
         public async Task<IEnumerable<Palvelu>> GetAllPalvelutAsync()
@@ -62,32 +60,32 @@ namespace Village_Newbies.Services
         }
 
         // Update: Päivitä olemassa oleva palvelu
-      public async Task<int> UpdatePalveluAsync(Palvelu palvelu)
-{
-    using (var conn = _databaseConnector._getConnection())
-    {
-        await conn.OpenAsync();
+        public async Task<int> UpdatePalveluAsync(Palvelu palvelu)
+        {
+            using (var conn = _databaseConnector._getConnection())
+            {
+                await conn.OpenAsync();
 
-        // Päivitetään palvelu tietokannassa
-        string query = @"UPDATE palvelu
+                // Päivitetään palvelu tietokannassa
+                string query = @"UPDATE palvelu
                          SET alue_id = @AlueId, nimi = @Nimi, kuvaus = @Kuvaus, 
                              hinta = @Hinta, alv = @Alv
                          WHERE palvelu_id = @PalveluId";
 
-        // Varmistetaan, että kaikki kentät ovat mukana
-        var parameters = new 
-        {
-            AlueId = palvelu.alue_id,
-            Nimi = palvelu.Nimi,
-            Kuvaus = palvelu.Kuvaus,
-            Hinta = palvelu.Hinta,
-            Alv = palvelu.Alv,
-            PalveluId = palvelu.palvelu_id
-        };
+                // Varmistetaan, että kaikki kentät ovat mukana
+                var parameters = new
+                {
+                    AlueId = palvelu.alue_id,
+                    Nimi = palvelu.Nimi,
+                    Kuvaus = palvelu.Kuvaus,
+                    Hinta = palvelu.Hinta,
+                    Alv = palvelu.Alv,
+                    PalveluId = palvelu.palvelu_id
+                };
 
-        return await conn.ExecuteAsync(query, parameters);
-    }
-}
+                return await conn.ExecuteAsync(query, parameters);
+            }
+        }
         // Delete: Poista palvelu ID:n perusteella
         public async Task<int> DeletePalveluAsync(int palveluId)
         {
@@ -119,45 +117,44 @@ namespace Village_Newbies.Services
             List<Alue> alueet = await aluePalvelu.HaeKaikki();
             return alueet;
         }
-public async Task<IEnumerable<PalveluRaportti>> GetOstetutLisapalvelutRaportti(DateTime alkuPvm, DateTime loppuPvm, List<int> alueet)
-{
-    using var conn = _databaseConnector._getConnection();
-    await conn.OpenAsync();
+        public async Task<IEnumerable<PalveluRaportti>> GetOstetutLisapalvelutRaportti(DateTime alkuPvm, DateTime loppuPvm, List<int> alueet)
+        {
+            using var conn = _databaseConnector._getConnection();
+            await conn.OpenAsync();
 
-    // SQL-kysely palveluiden hakemiseksi
-string query = @"
-    SELECT 
-        p.nimi AS PalveluNimi,
-        p.kuvaus AS PalveluKuvaus,
-        p.hinta AS PalveluHinta,
-        v.varattu_alkupvm AS VarattuAlkuPvm,
-        v.varattu_loppupvm AS VarattuLoppuPvm,
-        CONCAT(a.etunimi, ' ', a.sukunimi) AS AsiakasNimi
-    FROM 
-        varauksen_palvelut vp
-    JOIN 
-        varaus v ON vp.varaus_id = v.varaus_id
-    JOIN 
-        palvelu p ON vp.palvelu_id = p.palvelu_id
-    JOIN 
-        asiakas a ON v.asiakas_id = a.asiakas_id
-    WHERE 
-        v.varattu_alkupvm BETWEEN @AlkuPvm AND @LoppuPvm
-        AND p.alue_id IN @Alueet
-";
+            // SQL-kysely palveluiden hakemiseksi
+            string query = @"
+                    SELECT 
+                        p.nimi AS PalveluNimi,
+                        p.kuvaus AS PalveluKuvaus,
+                        p.hinta AS PalveluHinta,
+                        v.varattu_alkupvm AS VarattuAlkuPvm,
+                        v.varattu_loppupvm AS VarattuLoppuPvm,
+                    CONCAT(a.etunimi, ' ', a.sukunimi) AS AsiakasNimi
+                    FROM 
+                        varauksen_palvelut vp
+                    JOIN 
+                        varaus v ON vp.varaus_id = v.varaus_id
+                    JOIN 
+                        palvelu p ON vp.palvelu_id = p.palvelu_id
+                    JOIN 
+                        asiakas a ON v.asiakas_id = a.asiakas_id
+                    WHERE 
+                        v.varattu_alkupvm BETWEEN @AlkuPvm AND @LoppuPvm
+                    AND p.alue_id IN @Alueet";
 
-    var parameters = new 
-    {
-        AlkuPvm = alkuPvm,
-        LoppuPvm = loppuPvm,
-        Alueet = alueet
-    };
+            var parameters = new
+            {
+                AlkuPvm = alkuPvm,
+                LoppuPvm = loppuPvm,
+                Alueet = alueet
+            };
 
-    // Suorita kysely ja palauta tulokset
-    return await conn.QueryAsync<PalveluRaportti>(query, parameters);
-}
+            // Suorita kysely ja palauta tulokset
+            return await conn.QueryAsync<PalveluRaportti>(query, parameters);
+        }
 
     }
 
-    
+
 }
