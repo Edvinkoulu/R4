@@ -103,14 +103,14 @@ public partial class MainPage : TabbedPage
                 varattu_loppupvm = ValittuLoppuPv
             };
 
-            int varausId =  await _varausService.Lisaa(uusiVaraus);
+            uint varausId =  await _varausService.Lisaa(uusiVaraus);
 
             if (int.TryParse(LkmEntry.Text, out int lkm) &&
             PalveluPicker.SelectedItem is Palvelu selectedPalvelu)
             {
                 var uusiVP = new VarauksenPalvelu
                 {
-                    //VarausId = varausId,
+                    VarausId = varausId,
                     PalveluId = (uint)selectedPalvelu.palvelu_id,
                     Lkm = lkm
                 };

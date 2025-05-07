@@ -29,7 +29,7 @@ namespace Village_Newbies.Services
             return data.Rows.Count > 0 ? LuoOlio(data.Rows[0]) : null;
         }
 
-        public async Task<int> Lisaa(Varaus varaus)
+        public async Task<uint> Lisaa(Varaus varaus)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace Village_Newbies.Services
                         VALUES 
                         (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm);
                         SELECT LAST_INSERT_ID();";  // Get the last inserted ID (VarausId)
-                    var varausId = await SuoritaKomento(sql, // Use an async version if possible
+                    var varausId = (uint)await SuoritaKomento(sql, // Use an async version if possible
                         ("@asiakas_id", varaus.asiakas_id),
                         ("@mokki_id", varaus.mokki_id),
                         ("@varattu_pvm", varaus.varattu_pvm),
@@ -144,10 +144,10 @@ namespace Village_Newbies.Services
             loppuPvm = loppuPvm.Date;
 
             // Tarkista että päivämäärät ovat loogisia
-            if (loppuPvm <= alkuPvm)
+           /* if (loppuPvm <= alkuPvm)
             {
                 throw new ArgumentException("Loppupäivämäärän on oltava alkupäivämäärää myöhempi.");
-            }
+            }*/
 
             // SQL-kysely päällekkäisten varausten tarkistamiseen
             var sql = @"
