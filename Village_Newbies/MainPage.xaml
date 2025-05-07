@@ -56,15 +56,22 @@
                         ItemsSource="{Binding Palvelut}"
                         ItemDisplayBinding="{Binding Nimi}" />
 
-                        <!-- VarausId Entry -->
-                        <Entry x:Name="VarausIdEntry"
-                        Placeholder="Varaus ID"
-                        Keyboard="Numeric" />
-
                         <!-- Lkm Entry -->
                         <Entry x:Name="LkmEntry"
-                        Placeholder="Palvelun määrä"
+                        Placeholder="osallistuja määrä"
                         Keyboard="Numeric" />
+
+                        <Label Text="Valitse mökki:"/>
+                        <Picker x:Name="MokkiPicker"
+                            ItemsSource="{Binding Mokit}"
+                                SelectedItem="{Binding ValittuMokki, Mode=TwoWay}"
+                                ItemDisplayBinding="{Binding Mokkinimi}" />
+
+                        <Label Text="Alkupäivä:"/>
+                        <DatePicker Date="{Binding ValittuAlkuPv, Mode=TwoWay}"/>
+
+                        <Label Text="Loppupäivä:"/>
+                        <DatePicker Date="{Binding ValittuLoppuPv, Mode=TwoWay}"/>
 
 
                         <Button Text="Tallenna varaus"

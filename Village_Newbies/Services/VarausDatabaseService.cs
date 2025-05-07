@@ -29,36 +29,40 @@ namespace Village_Newbies.Services
             return data.Rows.Count > 0 ? LuoOlio(data.Rows[0]) : null;
         }
 
-        public async Task Lisaa(Varaus varaus)
+        public async Task<int> Lisaa(Varaus varaus)
         {
             try
             {
                 if (await OnkoVarausPaallekkain((int)varaus.mokki_id, varaus.varattu_alkupvm, varaus.varattu_loppupvm))
                 {
                     await Application.Current.MainPage.DisplayAlert("Virhe lisättäessä varausta", "Mökki ei ollut vapaana", "OK");
+                    return 0;
                 }
                 else
                 {
                     var sql = @"INSERT INTO varaus 
                         (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm)
                         VALUES 
-                        (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm)";
-                    await SuoritaKomento(sql,
+                        (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm);
+                        SELECT LAST_INSERT_ID();";  // Get the last inserted ID (VarausId)
+                    var varausId = await SuoritaKomento(sql, // Use an async version if possible
                         ("@asiakas_id", varaus.asiakas_id),
                         ("@mokki_id", varaus.mokki_id),
                         ("@varattu_pvm", varaus.varattu_pvm),
                         ("@vahvistus_pvm", varaus.vahvistus_pvm ?? (object)DBNull.Value),
                         ("@varattu_alkupvm", varaus.varattu_alkupvm),
                         ("@varattu_loppupvm", varaus.varattu_loppupvm));
+                        
                     await Application.Current.MainPage.DisplayAlert("Uusi varaus lisätty", $"Ajalle: {varaus.varattu_alkupvm} - {varaus.varattu_loppupvm} \nAsiakas: {varaus.asiakas_id}, Mokki {varaus.mokki_id}", "OK");
+
+                    return varausId;
                 }
             }
             catch (Exception ex)
             {
                 Application.Current.MainPage.DisplayAlert("Virhe", $"Varauksen lisäys epäonnistui \n{ex.Message}", "OK");
+                return 0;
             }
-
-
         }
         public async Task Poista(int varausId)
         {
