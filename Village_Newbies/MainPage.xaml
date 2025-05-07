@@ -58,8 +58,7 @@
 
                         <!-- Lkm Entry -->
                         <Entry x:Name="LkmEntry"
-                        Placeholder="osallistuja määrä"
-                        Keyboard="Numeric" />
+                        Placeholder="osallistuja määrä"/>
 
                         <Label Text="Valitse mökki:"/>
                         <Picker x:Name="MokkiPicker"

@@ -5,7 +5,7 @@ using Village_Newbies.Models;
 using Village_Newbies.Interfacet;
 using Village_Newbies.Services;
 using DatabaseConnection;
-
+using Dapper;
 
 namespace Village_Newbies.Services
 {
@@ -29,41 +29,82 @@ namespace Village_Newbies.Services
             return data.Rows.Count > 0 ? LuoOlio(data.Rows[0]) : null;
         }
 
-        public async Task<uint> Lisaa(Varaus varaus)
+        public async Task Lisaa(Varaus varaus)
         {
             try
             {
                 if (await OnkoVarausPaallekkain((int)varaus.mokki_id, varaus.varattu_alkupvm, varaus.varattu_loppupvm))
                 {
                     await Application.Current.MainPage.DisplayAlert("Virhe lisättäessä varausta", "Mökki ei ollut vapaana", "OK");
-                    return 0;
                 }
                 else
                 {
                     var sql = @"INSERT INTO varaus 
                         (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm)
                         VALUES 
-                        (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm);
-                        SELECT LAST_INSERT_ID();";  // Get the last inserted ID (VarausId)
-                    var varausId = (uint)await SuoritaKomento(sql, // Use an async version if possible
+                        (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm)";
+                    await SuoritaKomento(sql,
                         ("@asiakas_id", varaus.asiakas_id),
                         ("@mokki_id", varaus.mokki_id),
                         ("@varattu_pvm", varaus.varattu_pvm),
                         ("@vahvistus_pvm", varaus.vahvistus_pvm ?? (object)DBNull.Value),
                         ("@varattu_alkupvm", varaus.varattu_alkupvm),
                         ("@varattu_loppupvm", varaus.varattu_loppupvm));
-                        
                     await Application.Current.MainPage.DisplayAlert("Uusi varaus lisätty", $"Ajalle: {varaus.varattu_alkupvm} - {varaus.varattu_loppupvm} \nAsiakas: {varaus.asiakas_id}, Mokki {varaus.mokki_id}", "OK");
-
-                    return varausId;
                 }
             }
             catch (Exception ex)
             {
                 Application.Current.MainPage.DisplayAlert("Virhe", $"Varauksen lisäys epäonnistui \n{ex.Message}", "OK");
-                return 0;
             }
         }
+
+        public async Task<uint> Lisaa2(Varaus varaus)
+        {
+            try
+            {
+                // Check if the selected mokki is available
+                if (await OnkoVarausPaallekkain((int)varaus.mokki_id, varaus.varattu_alkupvm, varaus.varattu_loppupvm))
+                {
+                    await Application.Current.MainPage.DisplayAlert("Virhe lisättäessä varausta", "Mökki ei ollut vapaana", "OK");
+                    return 0;  // Return 0 or some default value to indicate failure
+                }
+                else
+                {
+                    var sql = @"INSERT INTO varaus 
+                                (asiakas_id, mokki_id, varattu_pvm, vahvistus_pvm, varattu_alkupvm, varattu_loppupvm)
+                                VALUES 
+                                (@asiakas_id, @mokki_id, @varattu_pvm, @vahvistus_pvm, @varattu_alkupvm, @varattu_loppupvm);
+                                SELECT LAST_INSERT_ID();";  // Get the last inserted ID (VarausId)
+
+                    using var conn = dbConnector._getConnection();
+                    await conn.OpenAsync();
+                    
+                    // Execute the query and return the inserted ID
+                    var varausId = (uint)await conn.ExecuteScalarAsync<ulong>(sql, new
+                    {
+                        asiakas_id = varaus.asiakas_id,
+                        mokki_id = varaus.mokki_id,
+                        varattu_pvm = varaus.varattu_pvm,
+                        vahvistus_pvm = varaus.vahvistus_pvm ?? (object)DBNull.Value,
+                        varattu_alkupvm = varaus.varattu_alkupvm,
+                        varattu_loppupvm = varaus.varattu_loppupvm
+                    });
+
+                    // Show the alert with the success message
+                    await Application.Current.MainPage.DisplayAlert("Uusi varaus lisätty", 
+                        $"Ajalle: {varaus.varattu_alkupvm} - {varaus.varattu_loppupvm} \nAsiakas: {varaus.asiakas_id}, Mokki {varaus.mokki_id}", "OK");
+
+                    return varausId;  // Return the ID of the newly created varaus
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Virhe", $"Varauksen lisäys epäonnistui \n{ex.Message}", "OK");
+                return 0;  // Return 0 to indicate failure
+            }
+        }
+
         public async Task Poista(int varausId)
         {
             try
@@ -144,10 +185,10 @@ namespace Village_Newbies.Services
             loppuPvm = loppuPvm.Date;
 
             // Tarkista että päivämäärät ovat loogisia
-           /* if (loppuPvm <= alkuPvm)
+            if (loppuPvm <= alkuPvm)
             {
                 throw new ArgumentException("Loppupäivämäärän on oltava alkupäivämäärää myöhempi.");
-            }*/
+            }
 
             // SQL-kysely päällekkäisten varausten tarkistamiseen
             var sql = @"

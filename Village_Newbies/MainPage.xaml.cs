@@ -44,6 +44,7 @@ public partial class MainPage : TabbedPage
     public MainPage()
     {
         InitializeComponent();
+        this.BindingContext = this;
         LoadPalvelut();
         LoadMokit();
     }
@@ -102,12 +103,12 @@ public partial class MainPage : TabbedPage
                 varattu_alkupvm = ValittuAlkuPv,
                 varattu_loppupvm = ValittuLoppuPv
             };
+            
+            uint varausId =  await _varausService.Lisaa2(uusiVaraus);
 
-            uint varausId =  await _varausService.Lisaa(uusiVaraus);
+            var selectedPalvelu = PalveluPicker.SelectedItem as Palvelu;
+            int lkm = int.Parse(LkmEntry.Text);
 
-            if (int.TryParse(LkmEntry.Text, out int lkm) &&
-            PalveluPicker.SelectedItem is Palvelu selectedPalvelu)
-            {
                 var uusiVP = new VarauksenPalvelu
                 {
                     VarausId = varausId,
@@ -116,7 +117,7 @@ public partial class MainPage : TabbedPage
                 };
 
                 await _vpService.CreateAsync(uusiVP);
-            }
+            
             await DisplayAlert("Onnistui", "Asiakas tallennettu!", "OK");
 
             EtunimiEntry.Text = "";
