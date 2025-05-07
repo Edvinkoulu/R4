@@ -1,5 +1,5 @@
-﻿using DatabaseConnection;
-using MySqlConnector;
+﻿using DatabaseConnection; //jos tarviitestata databasea 
+using MySqlConnector; //jos tarviitestata databasea 
 using Village_Newbies.Models;
 using Village_Newbies.Services;
 
@@ -76,6 +76,7 @@ public partial class MainPage : TabbedPage
             await DisplayAlert("Virhe", ex.Message, "OK");
         }
     }
+    /* ONGELMIEN VARALTA TALLESSA
     private async void OnDatabaseClicked(object sender, EventArgs e)
     {
         DatabaseConnector dbc = new DatabaseConnector();
@@ -89,5 +90,5 @@ public partial class MainPage : TabbedPage
         {
             await DisplayAlert("Failure", ex.Message, "OK");
         }
-    }
+    }*/
 }
