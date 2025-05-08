@@ -198,8 +198,16 @@ namespace Village_Newbies.ViewModels
             if (!vahvistus) return;
             try
             {
-                await _varausService.Poista((int)varaus.varaus_id);
+                bool onnistui = await _varausService.Poista((int)varaus.varaus_id);
                 await LataaData();
+                if (onnistui)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Onnistui","Varaus poistettu","OK");
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Virhe","Varauksen poisto epäonnistui","OK");
+                }
             }
             catch (MySqlException ex) when (ex.Number == 1451)
             {

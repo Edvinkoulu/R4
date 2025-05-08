@@ -10,7 +10,7 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
 {
     // Majoittumisen hinta lasketaan laskun muodostuksen yhteydessä VarausDatabaseServicessä, Mökin hinta * majoitusVrk
     // Näin Laskun hintaa voi muokata vapaasti muualla.
-    
+
     public LaskuDatabaseService() { }
     public LaskuDatabaseService(DatabaseConnector connection) : base(connection) { }
     // ===================== HAKU =======================
@@ -139,10 +139,14 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
                         ("@alv", lasku.alv),
                         ("@maksettu", lasku.maksettu));
                 }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Keskeytetty", "Laskua ei poistettu", "OK");
+                }
             }
         }
     }
-    public async Task Poista(uint id)
+    public async Task<bool> Poista(uint id)
     {
         Lasku? poistettavaLasku = await Hae(id);
         if (poistettavaLasku != null)
@@ -155,8 +159,11 @@ public class LaskuDatabaseService : DatabaseService, ILaskuDatabaseService
             {
                 await SuoritaKomento("DELETE FROM lasku WHERE lasku_id = @laskuId", ("@laskuId", id));
                 await Application.Current.MainPage.DisplayAlert("Lasku poistettu", $"Laskun ID: {id}", "OK");
+                return true;
             }
         }
+        await Application.Current.MainPage.DisplayAlert("Keskeytetty", $"Laskun ID: {id} ei poistettu", "OK");
+        return false;
     }
     public async Task TarkistaLasku(Lasku lasku)
     {

@@ -11,6 +11,7 @@ namespace Village_Newbies.Services
     {
         private readonly LaskuDatabaseService _laskuService = new LaskuDatabaseService();
         private readonly MokkiDatabaseService _mokkiService = new MokkiDatabaseService();
+        private readonly Varauksen_palvelutDatabaseService _vpService = new Varauksen_palvelutDatabaseService();
         public VarausDatabaseService() { }
         public VarausDatabaseService(DatabaseConnector connector) : base(connector) { }
 
@@ -139,34 +140,75 @@ namespace Village_Newbies.Services
                 await NaytaIlmoitus("Huomautus", $"Varausta (ID: {varaus.varaus_id}) ei löytynyt tai tietoja ei muutettu tietokannassa.");
             }
         }
-
-        // TODO: Poista lasku, tällä hetkellä varauksen poisto epäonnistuu jos sillä on lasku ja se pitää käydä poistamassa erikseen laskujen hallinnasta.
-        public async Task Poista(int varausId)
+        public async Task<bool> Poista(int varausId)
         {
+            if (varausId <= 0)
+            {
+                await NaytaIlmoitus("Virhe poistettaessa", "Virheellinen varaus ID.");
+                return false;
+            }
+
             try
             {
+                await _vpService.DeleteByVarausIdAsync((uint)varausId);
+                Debug.WriteLine($"VarausDatabaseService: Poistettu varauksen (ID: {varausId}) palvelut.");
+
+                // 2. Poista varaukseen liittyvät laskut
+                 try
+                 {
+                     var lasku = await _laskuService.HaeVarauksenLasku((uint)varausId);
+                     if (lasku != null)
+                     {
+                         bool laskuPoistettu = await _laskuService.Poista(lasku.lasku_id);
+
+                         // Tarkista, onnistuiko laskun poisto (käyttäjä vahvisti)
+                         if (!laskuPoistettu) // Jos laskua EI poistettu (käyttäjä peruutti tai tapahtui virhe)
+                         {
+                             // Näytä ilmoitus peruutuksesta ja keskeytä varauksen poisto
+                             await NaytaIlmoitus("Poisto keskeytetty", $"Laskua ID:llä {lasku.lasku_id} ei poistettu. Varauksen poisto keskeytetään.");
+                             return false; // Keskeytä varauksen poisto
+                         }
+                         Debug.WriteLine($"VarausDatabaseService: Poistettu varauksen (ID: {varausId}) lasku.");
+                     }
+                     else
+                     {
+                          Debug.WriteLine($"VarausDatabaseService: Varauksella (ID: {varausId}) ei ollut laskua poistettavaksi.");
+                          // Jatka varauksen poistoon, koska laskua ei ollut
+                     }
+                 }
+                 catch (Exception laskuEx)
+                 {
+                     Debug.WriteLine($"VarausDatabaseService: Virhe poistettaessa varauksen (ID: {varausId}) laskua: {laskuEx.Message}");
+                     await NaytaIlmoitus("Virhe laskua poistaessa", $"Varauksen laskun poisto epäonnistui. Varauksen poisto keskeytetään. Virhe: \n{laskuEx.Message}.");
+                     return false;
+                 }
+                // 3. Poista itse varaus
                 string sql = "DELETE FROM varaus WHERE varaus_id = @varaus_id";
                 int rowsAffected = await SuoritaKomento(sql, ("@varaus_id", varausId));
 
                 if (rowsAffected == 0)
                 {
                     // Heitä poikkeus tai näytä ilmoitus, jos varausta ei löytynyt poistettavaksi
-                    await NaytaIlmoitus("Huomautus", $"Varausta ID:llä {varausId} ei löytynyt poistettavaksi.");
+                    await NaytaIlmoitus("Huomautus", $"Varausta ID:llä {varausId} ei löytynyt poistettavaksi (mahdollisesti jo poistettu?).");
+                    return false; // Ei löytynyt poistettavaa -> ei onnistunut
                 }
                 else
                 {
                     await NaytaIlmoitus("Onnistui", $"Varaus (ID: {varausId}) poistettu onnistuneesti.");
+                    return true; // Varaus poistettu onnistuneesti
                 }
             }
-            catch (MySqlException ex) when (ex.Number == 1451) // Foreign key constraint
+            catch (MySqlException ex) when (ex.Number == 1451) // Foreign key constraint (should ideally not happen after deleting services/invoices)
             {
-                Debug.WriteLine($"VarausDatabaseService: Varauksen (ID: {varausId}) poisto epäonnistui viite-eheysrajoituksen vuoksi: {ex.Message}");
-                await NaytaIlmoitus("Virhe poistettaessa", "Varaukseen liittyy muita tietoja (esim. laskuja tai palveluita), eikä sitä voida poistaa. Poista ensin liitännäiset tiedot.");
+                Debug.WriteLine($"VarausDatabaseService: Varauksen (ID: {varausId}) poisto epäonnistui viite-eheysrajoituksen vuoksi (odotusarvoisesti ei pitäisi tapahtua): {ex.Message}");
+                await NaytaIlmoitus("Virhe poistettaessa", "Varaukseen liittyy yhä muita tietoja (esim. laskuja tai palveluita), eikä sitä voida poistaa. Tarkista tietokannan eheys.");
+                return false; // Poisto epäonnistui FK-rajoitteen vuoksi
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"VarausDatabaseService: Virhe poistettaessa varausta {varausId}: {ex.Message}");
                 await NaytaIlmoitus("Virhe", $"Virhe poistettaessa varausta {varausId}: {ex.Message}");
+                return false; // Yleinen virhe poistossa
             }
         }
 

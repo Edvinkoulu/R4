@@ -114,6 +114,6 @@ private async Task LoadVarauksetAsync()
         await Shell.Current.DisplayAlert("Virhe", "Lisäys epäonnistui.", "OK");
         }
     }
-
     }
+    
 }

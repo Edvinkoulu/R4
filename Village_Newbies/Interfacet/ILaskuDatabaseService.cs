@@ -15,7 +15,7 @@ public interface ILaskuDatabaseService
     Task<List<Palvelu>> HaeLaskunPalvelut(Lasku lasku);
     Task Lisaa(Lasku lasku);
     Task Muokkaa(Lasku lasku);
-    Task Poista(uint id);
+    Task<bool> Poista(uint id);
     Task<Varaus> HaeVaraus(uint id);
     Task<MokkiUint> HaeMokki(uint id);
     Task<Asiakas?> HaeAsiakas(uint id);
