@@ -61,11 +61,6 @@ public class PostiViewModel : INotifyPropertyChanged
             Postinumero = Postinumero.Trim(),
             Toimipaikka = Toimipaikka.Trim()
         });
-
-        await Shell.Current.DisplayAlert(
-            ok ? "Tallennettu" : "Virhe",
-            ok ? "Postinumero lisättiin / päivitettiin." : "Tallennus epäonnistui.",
-            "OK");
     }
     public async Task ClearFields(){
         Postinumero = string.Empty;
