@@ -166,7 +166,7 @@ COLLATE = utf8mb4_bin;
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `vn`.`palvelu` ;
 
---AUTO_INCREMENT LISÄTTY (tärkeä) -Edvin
+-- AUTO_INCREMENT LISÄTTY (tärkeä) -Edvin
 CREATE TABLE IF NOT EXISTS `vn`.`palvelu` (
   `palvelu_id` INT UNSIGNED NOT NULL AUTO_INCREMENT, 
   `alue_id` INT UNSIGNED NOT NULL,
