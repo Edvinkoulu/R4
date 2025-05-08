@@ -124,11 +124,32 @@ private async Task LataaPostitAsync()
 }
 
     private async Task PoistaAsync()
+{
+    if (Valittu.asiakas_id == 0) return; 
+
+    try                          
     {
-        if (Valittu.asiakas_id == 0) return;   // uusi, ei poistettavaa
         await _db.Poista(Valittu.asiakas_id);
         await LataaAsync();
         Valittu = new Asiakas();
     }
+    // FK-rajoite: asiakasta viittauksissa (varaus, lasku -tauluissa)
+    catch (MySqlException ex) when (ex.Number == 1451)  
+    {
+        await Application.Current.MainPage.DisplayAlert(
+            "Poisto estetty",
+            "Asiakkaalla on varauksia tai laskuja, joten sitä ei voi poistaa. " +
+            "Poista tai arkistoi riippuvat tiedot ensin.",
+            "OK");
+    }
+    
+    catch (Exception ex)
+    {
+        await Application.Current.MainPage.DisplayAlert(
+            "Virhe",
+            $"Poisto epäonnistui: {ex.Message}",
+            "OK");
+    }
+}
 }
 
