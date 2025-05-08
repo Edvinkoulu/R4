@@ -8,7 +8,6 @@ namespace Village_Newbies.Services
     {
         private readonly DatabaseConnector _databaseConnector;
 
-        // Default-konstruktori
         public PalveluDatabaseService()
         {
             _databaseConnector = new DatabaseConnector();
@@ -20,7 +19,7 @@ namespace Village_Newbies.Services
             _databaseConnector = databaseConnector;
         }
 
-        // Create: Lisää uusi palvelu
+        // Lisää uusi palvelu
         public async Task<int> CreatePalveluAsync(Palvelu palvelu)
         {
             using (var conn = _databaseConnector._getConnection())
@@ -35,7 +34,7 @@ namespace Village_Newbies.Services
             }
         }
 
-        // Read: Hae kaikki palvelut
+        // Hae kaikki palvelut
         public async Task<IEnumerable<Palvelu>> GetAllPalvelutAsync()
         {
             using (var conn = _databaseConnector._getConnection())
@@ -47,7 +46,7 @@ namespace Village_Newbies.Services
             }
         }
 
-        // Read: Hae palvelu ID:n perusteella
+        // Hae palvelu ID:n perusteella
         public async Task<Palvelu> GetPalveluByIdAsync(int palveluId)
         {
             using (var conn = _databaseConnector._getConnection())
@@ -59,7 +58,7 @@ namespace Village_Newbies.Services
             }
         }
 
-        // Update: Päivitä olemassa oleva palvelu
+        // Päivitä olemassa oleva palvelu
         public async Task<int> UpdatePalveluAsync(Palvelu palvelu)
         {
             using (var conn = _databaseConnector._getConnection())
@@ -86,7 +85,7 @@ namespace Village_Newbies.Services
                 return await conn.ExecuteAsync(query, parameters);
             }
         }
-        // Delete: Poista palvelu ID:n perusteella
+        // Poista palvelu ID:n perusteella
         public async Task<int> DeletePalveluAsync(int palveluId)
         {
             using (var conn = _databaseConnector._getConnection())
@@ -98,7 +97,7 @@ namespace Village_Newbies.Services
             }
         }
 
-        // Delete: Poista viittaukset varauksen_palvelut-taulusta, jossa palvelu_id on viitattu
+        // Poista viittaukset varauksen_palvelut-taulusta, jossa palvelu_id on viitattu
         public async Task DeleteViittauksetPalveluista(int palveluId)
         {
             using (var conn = _databaseConnector._getConnection())
@@ -110,7 +109,7 @@ namespace Village_Newbies.Services
             }
         }
 
-        // Read: Hae kaikki alueet
+        // Hae kaikki alueet
         public async Task<List<Alue>> GetAllAlueAsync()
         {
             AlueDatabaseService aluePalvelu = new AlueDatabaseService(_databaseConnector);

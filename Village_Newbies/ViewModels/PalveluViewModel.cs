@@ -136,49 +136,49 @@ namespace Village_Newbies.ViewModels
             AlueList = new ObservableCollection<Alue>(alueet);
         }
 
-       private async Task AddPalvelu()
-{
-    System.Diagnostics.Debug.WriteLine(
-        $"ID: {UusiPalvelu.palvelu_id}, " +
-        $"Nimi: {UusiPalvelu.Nimi}, " +
-        $"Kuvaus: {UusiPalvelu.Kuvaus}, " +
-        $"AlueId: {UusiPalvelu.alue_id}, " +
-        $"Hinta: {UusiPalvelu.Hinta}, " +
-        $"ALV: {UusiPalvelu.Alv}"
-    );
-
-    if (string.IsNullOrWhiteSpace(UusiPalvelu?.Nimi) || UusiPalvelu.Hinta <= 0 || UusiPalvelu.Alv <= 0)
-    {
-        await Application.Current.MainPage.DisplayAlert("Virhe", "Kaikki kentät täytyy täyttää oikein.", "OK");
-        return;
-    }
-
-    try
-    {
-        // Yritetään luoda uusi palvelu tietokantaan
-        int result = await _databaseService.CreatePalveluAsync(UusiPalvelu);
-
-        // Tarkastetaan, mitä tietokanta palautti
-        System.Diagnostics.Debug.WriteLine($"Tietokannan vastaus: {result}");
-
-        if (result > 0)
+        private async Task AddPalvelu()
         {
-            await LoadPalvelut();
-            ClearForm();
+            System.Diagnostics.Debug.WriteLine(
+                $"ID: {UusiPalvelu.palvelu_id}, " +
+                $"Nimi: {UusiPalvelu.Nimi}, " +
+                $"Kuvaus: {UusiPalvelu.Kuvaus}, " +
+                $"AlueId: {UusiPalvelu.alue_id}, " +
+                $"Hinta: {UusiPalvelu.Hinta}, " +
+                $"ALV: {UusiPalvelu.Alv}"
+            );
+
+            if (string.IsNullOrWhiteSpace(UusiPalvelu?.Nimi) || UusiPalvelu.Hinta <= 0 || UusiPalvelu.Alv <= 0)
+            {
+                await Application.Current.MainPage.DisplayAlert("Virhe", "Kaikki kentät täytyy täyttää oikein.", "OK");
+                return;
+            }
+
+            try
+            {
+                // Yritetään luoda uusi palvelu tietokantaan
+                int result = await _databaseService.CreatePalveluAsync(UusiPalvelu);
+
+                // Tarkastetaan, mitä tietokanta palautti
+                System.Diagnostics.Debug.WriteLine($"Tietokannan vastaus: {result}");
+
+                if (result > 0)
+                {
+                    await LoadPalvelut();
+                    ClearForm();
+                }
+                else
+                {
+                    // Jos vastaus ei ollut odotettu (esim. 0 tai negatiivinen)
+                    await Application.Current.MainPage.DisplayAlert("Virhe", "Palvelua ei voitu lisätä.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Jos tulee virhe tietokannan käsittelyssä, tulostetaan se Debug-logiin
+                System.Diagnostics.Debug.WriteLine($"Virhe lisäyksessä: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Virhe", $"Tietokantavirhe: {ex.Message}", "OK");
+            }
         }
-        else
-        {
-            // Jos vastaus ei ollut odotettu (esim. 0 tai negatiivinen)
-            await Application.Current.MainPage.DisplayAlert("Virhe", "Palvelua ei voitu lisätä.", "OK");
-        }
-    }
-    catch (Exception ex)
-    {
-        // Jos tulee virhe tietokannan käsittelyssä, tulostetaan se Debug-logiin
-        System.Diagnostics.Debug.WriteLine($"Virhe lisäyksessä: {ex.Message}");
-        await Application.Current.MainPage.DisplayAlert("Virhe", $"Tietokantavirhe: {ex.Message}", "OK");
-    }
-}
 
         private void LoadPalveluForEdit(Palvelu palvelu)
         {
@@ -199,7 +199,7 @@ namespace Village_Newbies.ViewModels
             IsEditing = true;
         }
 
-       private async Task UpdatePalvelu()
+        private async Task UpdatePalvelu()
         {
             System.Diagnostics.Debug.WriteLine(
             $"ID: {UusiPalvelu.palvelu_id}, " +
@@ -211,10 +211,10 @@ namespace Village_Newbies.ViewModels
             );
 
 
-        try
+            try
             {
-            // Yritetään päivittää palvelu tietokantaan
-            int result = await _databaseService.UpdatePalveluAsync(UusiPalvelu);
+                // Yritetään päivittää palvelu tietokantaan
+                int result = await _databaseService.UpdatePalveluAsync(UusiPalvelu);
 
                 if (result > 0)
                 {
@@ -227,7 +227,7 @@ namespace Village_Newbies.ViewModels
                 }
             }
             catch (Exception ex)
-            {       
+            {
                 System.Diagnostics.Debug.WriteLine($"Virhe muokkauksessa: {ex.Message}");
                 await Application.Current.MainPage.DisplayAlert("Virhe", $"Tietokantavirhe: {ex.Message}", "OK");
             }

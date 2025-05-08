@@ -46,8 +46,8 @@
             <!-- Lomakekentät -->
             <Entry Placeholder="Palvelun nimi" Text="{Binding UusiPalvelu.Nimi}" />
             <Entry Placeholder="Palvelun kuvaus" Text="{Binding UusiPalvelu.Kuvaus}" />
-            <Entry Placeholder="Hinta (€)" Keyboard="Numeric" Text="{Binding UusiPalvelu.Hinta}" />
-            <Entry Placeholder="ALV (%)" Keyboard="Numeric" Text="{Binding UusiPalvelu.Alv}" />
+            <Entry Placeholder="Hinta (€)" Keyboard="Numeric" Text="{Binding UusiPalvelu.Hinta, Converter={StaticResource ZeroToEmptyStringConverter}}" />
+            <Entry Placeholder="ALV (%)" Keyboard="Numeric" Text="{Binding UusiPalvelu.Alv, Converter={StaticResource ZeroToEmptyStringConverter}}" />
 
             <Picker Title="Valitse alue"
                     ItemsSource="{Binding AlueList}"
