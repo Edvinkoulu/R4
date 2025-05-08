@@ -15,6 +15,12 @@ namespace Village_Newbies.Services
         public VarausDatabaseService() { }
         public VarausDatabaseService(DatabaseConnector connector) : base(connector) { }
 
+        /*
+            Varauksen muokkaaminen, poistaminen tai lisääminen käsittelee myös laskuja.
+            Varauksen poistaminen poistaa ensin varauksen palvelut ja laskut ja vasta sitten itse varauksen.
+            Varauksen palveluuita ei voi tällä hetkellä muokata, pitää tehdä uusi varaus. -Jani
+        */
+
         // ==================== CRUD =======================
 
         public async Task<List<Varaus>> HaeKaikki()

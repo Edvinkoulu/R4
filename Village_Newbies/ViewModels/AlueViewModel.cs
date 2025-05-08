@@ -50,7 +50,7 @@ public class AlueViewModel : INotifyPropertyChanged
     {
         await LoadAlueet();
     }
-    
+
     public Alue SelectedAlue
     {
         get => _valittuAlue;
@@ -155,59 +155,65 @@ public class AlueViewModel : INotifyPropertyChanged
         }
     }
 
-    private async Task DeleteAlue(Alue alue) // Virheenkäsittelyä ei vielä testattu.
+    private async Task DeleteAlue(Alue alue)
     {
-        if (alue != null)
+        // Tarkista, että alue-olio ei ole null
+        if (alue == null)
         {
-            try
-            {
-                await databaseService.Poista(alue.alue_id);
-                await LoadAlueet();
-            }
-            catch (MySqlException ex)
-            {
-                // Tarkistetaan, onko virhe vierasavaimen rajoituksesta johtuva
-                if (ex.Number == 1451) // MySQL:n virhekoodi vierasavaimen rajoitusrikkomukselle
-                {
-                    // Näytetään käyttäjälle ilmoitus
-                    bool vastaus = await Application.Current.MainPage.DisplayAlert(
-                        "Poisto estetty",
-                        $"Aluetta '{alue.alue_nimi}' ei voida poistaa, koska se on käytössä mökeissä.",
-                        "OK",
-                        "Peruuta");
+            Debug.WriteLine("DeleteAlue: Yritettiin poistaa null-aluetta.");
+            return;
+        }
 
-                    // Jos käyttäjä painaa "Peruuta" (tai sulkee ilmoituksen OK:lla), ei tehdä mitään.
-                    // Jos painetaan "OK", voidaan mahdollisesti tehdä lisätoimenpiteitä (esim. ohjata käyttäjä muokkaamaan mökkejä).
-                    if (vastaus)
-                    {
-                        // Tässä kohtaa voitaisiin mahdollisesti navigoida käyttäjä mökkien hallintaan
-                        // tai näyttää viestiä siitä, miten alue saadaan poistettua (esim. poistamalla ensin siihen liittyvät mökit).
-                        Debug.WriteLine($"Käyttäjä painoi OK poistoviestissä alueelle '{alue.alue_nimi}'.");
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"Käyttäjä peruutti poistoyrityksen alueelle '{alue.alue_nimi}'.");
-                    }
-                }
-                else
-                {
-                    // Jos kyseessä on jokin muu tietokantavirhe, näytetään yleisluontoisempi virheilmoitus
-                    await Application.Current.MainPage.DisplayAlert(
-                        "Virhe poistettaessa",
-                        $"Alueen '{alue.alue_nimi}' poistamisessa tapahtui virhe: {ex.Message}",
-                        "OK");
-                    Debug.WriteLine($"Tietokantavirhe poistettaessa aluetta '{alue.alue_nimi}': {ex}");
-                }
-            }
-            catch (Exception ex)
+        // Vahvistuskysely ennen poistoa
+        bool vahvistus = await Application.Current.MainPage.DisplayAlert(
+            "Poista alue",
+            $"Haluatko varmasti poistaa alueen '{alue.alue_nimi}'?",
+            "Kyllä",
+            "Ei");
+
+        if (!vahvistus)
+        {
+            Debug.WriteLine($"DeleteAlue: Alueen '{alue.alue_nimi}' poisto peruutettu käyttäjän toimesta.");
+            return; // Palataan koska käyttäjä peruutti poiston
+        }
+
+        try
+        {
+            await databaseService.Poista(alue.alue_id);
+            await LoadAlueet();
+            await Application.Current.MainPage.DisplayAlert( 
+                "Poisto onnistui",
+                $"Alue '{alue.alue_nimi}' poistettiin onnistuneesti.",
+                "OK"); // Näytä ilmoitus onnistuneesta poistosta
+        }
+        catch (MySqlException ex)
+        {
+            // Tarkistetaan, onko virhe vierasavaimen rajoituksesta johtuva (esim. mökit viittaavat alueeseen)
+            if (ex.Number == 1451) // MySQL:n virhekoodi vierasavaimen rajoitusrikkomukselle
             {
-                // Yleinen virheenkäsittely muiden poikkeusten varalle
+                // Näytetään käyttäjälle selkeä ilmoitus siitä, miksi poisto estyi
                 await Application.Current.MainPage.DisplayAlert(
-                    "Yleinen virhe",
-                    $"Alueen '{alue.alue_nimi}' poistamisessa tapahtui odottamaton virhe: {ex.Message}",
+                    "Poisto estetty",
+                    $"Aluetta '{alue.alue_nimi}' ei voida poistaa, koska se on käytössä mökeissä tai muissa tiedoissa. Poista tai muokkaa ensin kaikki tähän alueeseen liittyvät mökit ja palvelut.",
                     "OK");
-                Debug.WriteLine($"Yleinen virhe poistettaessa aluetta '{alue.alue_nimi}': {ex}");
+                Debug.WriteLine($"Tietokantavirhe (FK-rajoitus) poistettaessa aluetta '{alue.alue_nimi}': {ex.Message}");
             }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "Tietokantavirhe",
+                    $"Alueen '{alue.alue_nimi}' poistamisessa tapahtui tietokantavirhe: {ex.Message}",
+                    "OK");
+                Debug.WriteLine($"Muu tietokantavirhe poistettaessa aluetta '{alue.alue_nimi}': {ex}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlert(
+                "Yleinen virhe",
+                $"Alueen '{alue.alue_nimi}' poistamisessa tapahtui odottamaton virhe: {ex.Message}",
+                "OK");
+            Debug.WriteLine($"Yleinen virhe poistettaessa aluetta '{alue.alue_nimi}': {ex}");
         }
     }
     private void ValitseAlueMuokkaustaVarten(Alue alue)

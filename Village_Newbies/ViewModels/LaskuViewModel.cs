@@ -15,6 +15,7 @@ using System;
 
 // Laskujen hallinnassa ei voi tehdä uusia laskuja. Lasku pitää tehdä asiakasvarauksen täytön yhteydessä
 // Laskujen lisääminen onnistuu laskudatabasea hyödyntämällä.
+// Laskuja luodaan tällä hetkellä MajoitusVarausViewModelin ja MainPagen kautta.
 
 public class LaskuViewModel : INotifyPropertyChanged, ILaskuViewModel
 {

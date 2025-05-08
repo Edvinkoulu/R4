@@ -23,23 +23,23 @@ public class MokkiViewModel : BindableObject
     }
 
     public ObservableCollection<Alue> AlueList
+    {
+        get => _alueList;
+        set
         {
-            get => _alueList;
-            set
-            {
-                _alueList = value;
-                OnPropertyChanged();
-            }
+            _alueList = value;
+            OnPropertyChanged();
         }
+    }
 
     public ObservableCollection<Mokki> Mokkis
     {
         get => _mokkis;
         set
-            {
-                _mokkis = value;
-                OnPropertyChanged(); // Notify the UI that the property has changed
-            }
+        {
+            _mokkis = value;
+            OnPropertyChanged(); // Notify the UI that the property has changed
+        }
     }
 
     private Alue _selectedAlue;
@@ -102,15 +102,15 @@ public class MokkiViewModel : BindableObject
         var postiService = new PostiDatabaseService(); // or however your actual implementation is named
         PostiVM = new PostiViewModel(postiService);
 
-    PostiVM.PropertyChanged += (s, e) =>
-    {
-        if (e.PropertyName == nameof(PostiViewModel.Postinumero))
+        PostiVM.PropertyChanged += (s, e) =>
         {
-            if (NewMokki != null)
-                NewMokki.Postinro = PostiVM.Postinumero;
+            if (e.PropertyName == nameof(PostiViewModel.Postinumero))
+            {
+                if (NewMokki != null)
+                    NewMokki.Postinro = PostiVM.Postinumero;
 
-        }
-    };
+            }
+        };
 
         _mokkiDatabaseService = new MokkiDatabaseService(); // Initialize the service
         NewMokki = new Mokki(); // Create a new instance of Mokki
@@ -120,85 +120,88 @@ public class MokkiViewModel : BindableObject
         DeleteMokkiCommand = new Command<Mokki>(async (mokki) => await DeleteMokkiAsync(mokki));
         LoadMokkiForEditCommand = new Command<Mokki>((mokki) => LoadMokkiForEdit(mokki));
         ConfirmUpdateMokkiCommand = new Command(async () => await UpdateMokkiAsync());
-        
+
         // Load initial data
         LoadAlueList(); // Get all Alue list
         LoadMokkis();   // Get all Mokki list
     }
 
     private async Task LoadAlueList()
-        {
-            // Fetch all alue records from the database
-            var alueList = await _mokkiDatabaseService.GetAllAlueAsync();
-            AlueList = new ObservableCollection<Alue>(alueList);
-        }
+    {
+        // Fetch all alue records from the database
+        var alueList = await _mokkiDatabaseService.GetAllAlueAsync();
+        AlueList = new ObservableCollection<Alue>(alueList);
+    }
 
-        private async void LoadMokkis()
-        {
-            // Get all Mokkis from the database
-            var mokkis = await _mokkiDatabaseService.GetAllMokkisAsync();
-            // Update the ObservableCollection to reflect the changes
-            Mokkis = new ObservableCollection<Mokki>(mokkis);
-        }
+    private async void LoadMokkis()
+    {
+        // Get all Mokkis from the database
+        var mokkis = await _mokkiDatabaseService.GetAllMokkisAsync();
+        // Update the ObservableCollection to reflect the changes
+        Mokkis = new ObservableCollection<Mokki>(mokkis);
+    }
 
     private async Task AddMokkiAsync()
-{
-    // Try saving postal info first
-    await PostiVM.TallennaAsync();
-
-    if (NewMokki == null)
     {
-        return;
-    }
-    // Validate required fields
-    if (string.IsNullOrEmpty(NewMokki.Postinro))
-    {
-        return;
-    }
+        // Try saving postal info first
+        await PostiVM.TallennaAsync();
 
-    if (string.IsNullOrWhiteSpace(NewMokki.Mokkinimi))
-    {
+        if (NewMokki == null)
+        {
+            return;
+        }
+        // Validate required fields
+        if (string.IsNullOrEmpty(NewMokki.Postinro))
+        {
+            return;
+        }
 
-        return;
-    }
+        if (string.IsNullOrWhiteSpace(NewMokki.Mokkinimi))
+        {
 
-    // Try saving the Mokki
-    int rowsAffected = await _mokkiDatabaseService.CreateMokkiAsync(NewMokki);
+            return;
+        }
 
-    if (rowsAffected > 0)
-    {
-        NewMokki = new Mokki(); // Reset form
-        await PostiVM.ClearFields();
-        OnPropertyChanged(nameof(NewMokki));
-        LoadMokkis();           // Refresh list
+        // Try saving the Mokki
+        int rowsAffected = await _mokkiDatabaseService.CreateMokkiAsync(NewMokki);
+
+        if (rowsAffected > 0)
+        {
+            NewMokki = new Mokki(); // Reset form
+            await PostiVM.ClearFields();
+            OnPropertyChanged(nameof(NewMokki));
+            LoadMokkis();           // Refresh list
+        }
+        else
+        {
+            return;
+        }
     }
-    else
-    {
-        return;
-    }
-}
 
 
     private async Task DeleteMokkiAsync(Mokki mokki)
     {
-    if (mokki == null) return;
+        if (mokki == null) return;
 
-    bool confirm = await Application.Current.MainPage.DisplayAlert(
-        "Confirm Delete",
-        $"Are you sure you want to delete '{mokki.Mokkinimi} ja {mokki.mokki_id}'?",
-        "Yes",
-        "No");
+        bool confirm = await Application.Current.MainPage.DisplayAlert(
+            "Confirm Delete",
+            $"Are you sure you want to delete '{mokki.Mokkinimi} ja {mokki.mokki_id}'?",
+            "Yes",
+            "No");
 
-    if (confirm)
-    {
-        await _mokkiDatabaseService.DeleteMokkiAsync(mokki.mokki_id);
-        Mokkis.Remove(mokki);
-    }
+        if (confirm)
+        {
+            bool poistoOnnistui = await _mokkiDatabaseService.DeleteMokkiAsync(mokki.mokki_id);
+            if (poistoOnnistui)
+            {
+                Mokkis.Remove(mokki);
+            }
+        }
     }
 
     private void LoadMokkiForEdit(Mokki mokki)
     {
-    if (mokki == null) return;
+        if (mokki == null) return;
 
         SelectedMokkiForEdit = mokki;
 
@@ -226,16 +229,16 @@ public class MokkiViewModel : BindableObject
     {
         IsEditing = false;
         IsEditing2 = true;
-    if (NewMokki == null || NewMokki.mokki_id <= 0)
-        return;
+        if (NewMokki == null || NewMokki.mokki_id <= 0)
+            return;
 
-    await PostiVM.TallennaAsync();
-    await _mokkiDatabaseService.UpdateMokkiAsync(NewMokki);
-    LoadMokkis();
+        await PostiVM.TallennaAsync();
+        await _mokkiDatabaseService.UpdateMokkiAsync(NewMokki);
+        LoadMokkis();
 
-    // Clear form if needed
-    NewMokki = new Mokki();
-    SelectedAlue = null;
+        // Clear form if needed
+        NewMokki = new Mokki();
+        SelectedAlue = null;
     }
 
 }
