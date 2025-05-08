@@ -17,6 +17,7 @@
                                 <Label Text="{Binding mokki_id}" FontSize="18"/>
                                 <Label Text="{Binding Mokkinimi}" FontSize="18"/>
                                 <Label Text="{Binding Katuosoite}" FontSize="14"/>
+                                <Label Text="{Binding Postinro}" FontSize="14"/>
                                 <Label Text="{Binding Kuvaus}" FontSize="12"/>
                                 <Label Text="{Binding Hinta, StringFormat='Price: {0:C}'}" FontSize="14"/>
                                 <Label Text="{Binding Varustelu}" FontSize="12"/>

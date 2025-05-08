@@ -148,19 +148,17 @@ public class MokkiViewModel : BindableObject
 
     if (NewMokki == null)
     {
-        await Shell.Current.DisplayAlert("Virhe", "Mökin tiedot puuttuvat.", "OK");
         return;
     }
     // Validate required fields
     if (string.IsNullOrEmpty(NewMokki.Postinro))
     {
-        await Shell.Current.DisplayAlert("Virhe", "Postinumero puuttuu.", "OK");
         return;
     }
 
     if (string.IsNullOrWhiteSpace(NewMokki.Mokkinimi))
     {
-        await Shell.Current.DisplayAlert("Virhe", "Mökin nimi puuttuu.", "OK");
+
         return;
     }
 
@@ -169,8 +167,6 @@ public class MokkiViewModel : BindableObject
 
     if (rowsAffected > 0)
     {
-        await Shell.Current.DisplayAlert("Onnistui", "Mökki lisättiin onnistuneesti.", "OK");
-
         NewMokki = new Mokki(); // Reset form
         await PostiVM.ClearFields();
         OnPropertyChanged(nameof(NewMokki));
@@ -178,7 +174,7 @@ public class MokkiViewModel : BindableObject
     }
     else
     {
-        await Shell.Current.DisplayAlert("Virhe", "Mökin lisääminen epäonnistui. Yritä uudelleen.", "OK");
+        return;
     }
 }
 
