@@ -40,11 +40,7 @@ public sealed class AsiakasHallintaViewModel : BindableObject
     }
     private List<Posti> _postiCache = new();
 public bool NäytäToimipaikka => !_postiCache.Any(p => p.Postinumero == Valittu.postinro);
-private async Task LataaPostitAsync()
-{
-    _postiCache = await _posti.HaeKaikkiAsync();
-    OnPropertyChanged(nameof(NäytäToimipaikka));
-}
+
     // ───── Komennot ─────────────────────────────────────────────────────────
     public ICommand LataaCommand     { get; }
     public ICommand UusiCommand      { get; }
@@ -83,7 +79,16 @@ private async Task LataaPostitAsync()
 {
     try
     {
-        SyoteValidointi.TarkistaPostinumero(Valittu.postinro);
+        if (Valittu == null) // Ei edetä koodissa jos asiakas ei ole valittuna, voi muuten kaatua.
+        {
+            if (Application.Current?.MainPage != null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Virhe", "Ei tallennettavaa asiakasta.", "OK");
+            }
+            return;
+        }
+
+        Valittu.postinro = SyoteValidointi.TarkistaPostinumero(Valittu.postinro);
 
         // 1)  Lisätään puuttuva postinumero, jos tarpeen
         if (!_postiCache.Any(p => p.Postinumero == Valittu.postinro))
@@ -120,6 +125,11 @@ private async Task LataaPostitAsync()
     {
         await Application.Current.MainPage.DisplayAlert(
             "Virhe", "Sähköposti on jo käytössä.", "OK");
+    }
+    catch (Exception ex)
+    {
+        await Application.Current.MainPage.DisplayAlert(
+            "Odottamaton virhe", $"{ex.Message}", "OK");
     }
 }
 
